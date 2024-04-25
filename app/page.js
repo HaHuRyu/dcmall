@@ -6,6 +6,7 @@ export default function Home() {
     <div>
       <h4>이정희 꺼임</h4>
       <h4>dcmall</h4>
+      <p>ttest</p>
     </div>
   );
 }
