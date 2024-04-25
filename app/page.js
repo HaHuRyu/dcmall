@@ -5,7 +5,11 @@ export default function Home() {
   return (
     <div>
       <h4>dcmall</h4>
-      <p>test</p>
+
+      <form>
+        <input>ID : </input>
+        <input>PW : </input>
+      </form>
     </div>
   );
 }
