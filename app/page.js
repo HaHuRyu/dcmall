@@ -1,5 +1,3 @@
-import {id, password} from "./login"
-
 export default function Home() {
   return (
     <div>
