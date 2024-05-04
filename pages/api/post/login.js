@@ -10,7 +10,7 @@ export default function handler(req, res)
         try
         {
             const {id, password} = req.body;
-            var hashPW= CryptoJS.SHA256(password);
+            var hashPW = CryptoJS.SHA256(password);
 
             if(storeID == id && storePW == hashPW)
             {
