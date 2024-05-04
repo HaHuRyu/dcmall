@@ -8,6 +8,8 @@ export default function Home() {
         <input type="password" placeholder="PW" name="password" />
         <button type="submit">login</button>
       </form>
+
+      <a href="/join"><button>회원가입</button></a>
     </div>
   );
 }
