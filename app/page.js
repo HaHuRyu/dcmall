@@ -1,3 +1,24 @@
+const mysql = require('mysql');
+
+
+const connection = mysql.createConnection({
+  host: '15.165.27.67',
+  user: 'dcmall',
+  password: 'dcmall45',
+  database: 'dcmall'
+});
+
+console.log("DB_HOST: "+ process.env.DB_HOST)
+
+
+connection.connect(function(err) {
+  if (err) {
+    console.error('Error connecting to MySQL database: ' + err.stack);
+    return;
+  }
+  console.log('Connected to MySQL database as id ' + connection.threadId);
+});
+
 export default function Home() {
   return (
     <div>
