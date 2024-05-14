@@ -10,8 +10,8 @@ export default function Join() {
             <input type="text" placeholder="ID를 입력하시오." name = "inputID"/>
 
             <p>PW : </p>
-            <input type="password" placeholder="PW를 입력하시오." name = "inputPW" onInput={(e) => {
-              fetch("/api/ajax/pw", { // 서버의 "/api/ajax/pw" 엔드포인트에 요청을 보냅니다.
+            <input type="password" placeholder="PW를 입력하시오." id = "inputPW" onInput={(e) => {
+              fetch("/api/ajax/join", { // 서버의 "/api/ajax/pw" 엔드포인트에 요청을 보냅니다.
                 method: 'POST', 
                 headers: {
                   'Content-Type': 'application/json', // 서버에 JSON 형태의 데이터임을 알립니다.
