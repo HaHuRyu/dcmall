@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import pool from './database';
 
 export default async function handler(req, res) {
@@ -9,15 +10,19 @@ export default async function handler(req, res) {
     res.status(500).json({ error: 'Error executing query' });
   }
 }
+=======
+import React from 'react';
+
+>>>>>>> 858c5117c844ea906d8732ca75aae95fc7656c58
 
 export default function Home() {
   return (
     <div>
       <h4>dcmall</h4>
 
-      <form action="/api/post/login" method = "POST">
-        <input type="text" placeholder="ID" name="id" />
-        <input type="password" placeholder="PW" name="password" />
+      <form action="/api/post/login" method="POST">
+        <input type="text" placeholder="ID" name="id" id='id' />
+        <input type="password" placeholder="PW" name="password" id='password' />
         <button type="submit">login</button>
       </form>
 
