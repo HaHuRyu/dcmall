@@ -1,23 +1,14 @@
-const mysql = require('mysql');
+import pool from './database';
 
-
-const connection = mysql.createConnection({
-  host: '15.165.27.67',
-  user: 'dcmall',
-  password: 'dcmall45',
-  database: 'dcmall'
-});
-
-console.log("DB_HOST: "+ process.env.DB_HOST)
-
-
-connection.connect(function(err) {
-  if (err) {
-    console.error('Error connecting to MySQL database: ' + err.stack);
-    return;
+export default async function handler(req, res) {
+  try {
+    const [rows] = await pool.query('SELECT * FROM users');
+    res.status(200).json(rows);
+  } catch (err) {
+    console.error('Error executing query', err);
+    res.status(500).json({ error: 'Error executing query' });
   }
-  console.log('Connected to MySQL database as id ' + connection.threadId);
-});
+}
 
 export default function Home() {
   return (
