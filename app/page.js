@@ -1,19 +1,5 @@
-<<<<<<< HEAD
-import pool from './database';
-
-export default async function handler(req, res) {
-  try {
-    const [rows] = await pool.query('SELECT * FROM users');
-    res.status(200).json(rows);
-  } catch (err) {
-    console.error('Error executing query', err);
-    res.status(500).json({ error: 'Error executing query' });
-  }
-}
-=======
 import React from 'react';
 
->>>>>>> 858c5117c844ea906d8732ca75aae95fc7656c58
 
 export default function Home() {
   return (
