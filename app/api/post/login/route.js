@@ -19,7 +19,7 @@ export async function POST(req) {
 
     const connection = getConnection();
 
-    const query = "SELECT * FROM user WHERE id = ? AND passowrd = ?";
+    const query = "SELECT * FROM user WHERE id = ? AND password = ?";
 
     console.log(password);
 
