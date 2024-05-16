@@ -11,17 +11,11 @@ export async function POST(req) {
     const id = params.get("id");
     let password = params.get("password");
     
-    console.log('dada'+text)
-
-    console.log('params'+params)
-
     password = hash(password);
 
     const connection = getConnection();
 
     const query = "SELECT * FROM user WHERE id = ? AND password = ?";
-
-    console.log(password);
 
     return new Promise((resolve, reject) => {
       connection.query(query, [id, password], (err, results) => {
