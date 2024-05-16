@@ -1,5 +1,6 @@
 // app/api/post/login/route.js
 import { NextResponse } from "next/server";
+import { password_salt } from "../../../_lib/salt";
 import { getConnection } from "../../../_lib/db";
 import CryptoJS from 'crypto-js';
 
@@ -11,39 +12,24 @@ export async function POST(req) {
     const id = params.get("id");
     let password = params.get("password");
     
-    password = hash(password);
+    //password = hash(password);
+
+    console.log(id)
 
     const connection = getConnection();
+    const query = "SELECT * FROM user WHERE id = ?";
 
-    const query = "SELECT * FROM user WHERE id = ? AND password = ?";
+    const [rows, fields] = await connection.execute(query, [id]);
 
-    return new Promise((resolve, reject) => {
-      connection.query(query, [id, password], (err, results) => {
-        if (err) {
-          console.error("Database query error:", err);
-          resolve(
-            NextResponse.json(
-              { error: "Database query error" },
-              { status: 500 }
-            )
-          );
-          return;
-        }
 
-        if (results.length > 0) {
-          resolve(
-            NextResponse.json({ message: "Login successful" }, { status: 200 })
-          );
-        } else {
-          resolve(
-            NextResponse.json(
-              { message: "Invalid credentials" },
-              { status: 401 }
-            )
-          );
-        }
-      });
-    });
+    // 결과 처리
+    console.log(fields);
+
+    if (rows.length > 0) {
+      return res.status(200).json({ message: 'Login successful', data: rows });
+    } else {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
   } catch (error) {
     console.error("Request parsing error:", error);
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
@@ -52,6 +38,10 @@ export async function POST(req) {
 
 function hash(password) {
 
-    return CryptoJS.SHA256(password).toString();
+  var salt = password.slice(-6)
+  var userPw = password.slice(0, [-6])
+
+
+  return password_salt(userPw, salt)
 
 }
