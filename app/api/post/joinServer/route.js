@@ -1,4 +1,5 @@
 import CryptoJS from 'crypto-js';
+import { password_salt } from '../../../_lib/salt';
 import {NextResponse} from "next/server"
 import {getConnection} from "../../../_lib/db"
 
@@ -16,8 +17,7 @@ export async function POST(req){
     const safeId = finalIdCheck(userId);
 
     if(safeId && safePw){
-        var hashPw = CryptoJS.SHA256(userPw).toString();
-
+        var hashPw = password_salt(userPw)
         //DB에 저장하는 부분을 집어 넣자
         const dbConnection = await getConnection();
         
@@ -64,12 +64,7 @@ async function finalIdCheck(id) {
                         return false;
                     } else {
                         const count = results[0].count;
-
-                        if (count === 0) {
-                            return true;
-                        } else {
-                            return false;
-                        }
+                        return count == 0
                     }
                 });
             });

@@ -1,74 +1,43 @@
-import { NextResponse } from 'next/server';
-import { getConnection } from '../../../_lib/db';
-import CryptoJS from 'crypto-js';
+// app/api/post/login/route.js
+import { NextResponse } from "next/server";
+import { password_check } from "../../../_lib/salt";
+import { queryDatabase } from "../../../_lib/db";
 import jwt from 'jsonwebtoken';
-import { setCookie } from 'cookies-next';
 
 export async function POST(req) {
+
+  let res = NextResponse
+
   try {
     const text = await req.text();
     const params = new URLSearchParams(text);
-    const id = params.get('id');
-    let password = params.get('password');
+    const id = params.get("id");
+    let userPw = params.get("password");
+    
+    const query = await queryDatabase(id);
 
-    password = hash(password); // 비밀번호 해시 처리
+    if(query.length > 0){
+      const user = query[0]
+      console.log('dsadsa' + query)
+      let answer = hash(user.password, userPw)
 
-    const connection = getConnection();
+      if(answer == true){
+        return res.json({ message: '로그인 성공'}, {status: 200});
+      } else {
+        return res.json({ message: '비밀번호가 일치하지 않습니다.' }, {status: 401} );
+      }
+    } else {
+      return res.json({ message: '현재 입력하신 계정은 없는 계정입니다. 확인 후 다시 이용해주세요.' }, {status: 401});
+    }
 
-    const query = 'SELECT * FROM user WHERE id = ? AND password = ?';
-
-    return new Promise((resolve, reject) => {
-      connection.query(query, [id, password], (err, results) => {
-        if (err) {
-          console.error('Database query error:', err);
-          resolve(
-            NextResponse.json(
-              { error: 'Database query error' },
-              { status: 500 }
-            )
-          );
-          return;
-        }
-
-        if (results.length > 0) {
-          // 사용자가 존재하고 비밀번호가 맞는 경우
-          const user = results[0];
-          const token = jwt.sign(
-            { id: user.id, name: user.name },
-            process.env.SECRET_KEY,
-            { expiresIn: '1h' }
-          );
-          // JWT 토큰을 쿠키에 설정
-          const response = NextResponse.json(
-            { message: 'Login successful' },
-            { status: 200 }
-          );
-          response.cookies.set('session-token', token, {
-            path: '/',
-            maxAge: 60 * 60 * 1, // 1시간
-            httpOnly: true, // 클라이언트에서 쿠키를 읽지 못하도록 설정
-            secure: process.env.NODE_ENV === 'production', // 프로덕션 환경에서는 secure 속성 활성화
-          });
-
-          resolve(response); // 로그인 성공 응답 반환
-        } else {
-          // 사용자가 존재하지 않거나 비밀번호가 틀린 경우
-          resolve(
-            NextResponse.json(
-              { message: 'Invalid credentials' },
-              { status: 401 }
-            )
-          ); // 로그인 실패 응답 반환
-        }
-      });
-    });
   } catch (error) {
-    console.error('Request parsing error:', error);
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 }); // 요청 파싱 오류 응답 반환
+    console.error("Request parsing error:", error);
+    return res.json({ error: "오류 발생" }, { status: 400 });
   }
 }
 
-function hash(password) {
-  // 비밀번호를 SHA256으로 해시 처리
-  return CryptoJS.SHA256(password).toString();
+function hash(password, userPw) {
+
+  return password_check(password, userPw)
+
 }
