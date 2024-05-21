@@ -20,7 +20,6 @@ export default NextAuth({
       // 이미 DB에서 ID와 비밀번호를 확인했다고 가정하고, JWT 토큰만 발급하여 반환한다.
       async authorize(credentials) {  //POST여야만 한다
         // 사용자 인증 로직
-        console.log("authorize!!!");
         // 예시로 간단하게 처리 - 실제로는 데이터베이스 등에서 사용자 인증 로직을 수행
         const user = { id: credentials.id, name: credentials.id };
 

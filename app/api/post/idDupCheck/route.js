@@ -30,16 +30,16 @@ async function idCheck(id) {
                     reject({ message: "Database query error", status: 500 });
                 } else {
                     const count = results[0].count;
-
+                    
                     if (count === 0) {
-                        resolve({ message: "You can use this ID", status: 200 });
+                        resolve({ message: "사용할 수 있는 ID", status: 200 });
                     } else {
-                        resolve({ message: "ID already exists", status: 200 });
+                        resolve({ message: "이미 존재하는 ID", status: 200 });
                     }
                 }
             });
         });
     }
 
-    throw { message: "Invalid ID format", status: 400 };
+    throw { message: "다른 ID를 사용해주십시오.", status: 400 };
 }
