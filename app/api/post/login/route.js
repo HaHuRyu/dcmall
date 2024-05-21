@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { password_check } from "../../../_lib/salt";
 import { queryDatabase } from "../../../_lib/db";
-
+import jwt from 'jsonwebtoken';
 
 export async function POST(req) {
 
