@@ -1,5 +1,6 @@
 // app/api/post/login/route.js
 import { NextResponse } from "next/server";
+import { password_salt } from "../../../_lib/salt";
 import { getConnection } from "../../../_lib/db";
 import CryptoJS from 'crypto-js';
 
@@ -11,45 +12,22 @@ export async function POST(req) {
     const id = params.get("id");
     let password = params.get("password");
     
-    console.log('dada'+text)
+    //password = hash(password);
 
-    console.log('params'+params)
+    console.log(id)
 
-    password = hash(password);
+    const connection = await getConnection();
+    const query = "SELECT * FROM user WHERE id = ?";
+    const rows = connection.query(query, [id]);
 
-    const connection = getConnection();
+    // 결과 처리
+    console.log("rows : " + rows);
 
-    const query = "SELECT * FROM user WHERE id = ? AND password = ?";
-
-    console.log(password);
-
-    return new Promise((resolve, reject) => {
-      connection.query(query, [id, password], (err, results) => {
-        if (err) {
-          console.error("Database query error:", err);
-          resolve(
-            NextResponse.json(
-              { error: "Database query error" },
-              { status: 500 }
-            )
-          );
-          return;
-        }
-
-        if (results.length > 0) {
-          resolve(
-            NextResponse.json({ message: "Login successful" }, { status: 200 })
-          );
-        } else {
-          resolve(
-            NextResponse.json(
-              { message: "Invalid credentials" },
-              { status: 401 }
-            )
-          );
-        }
-      });
-    });
+    if (rows.length > 0) {
+      return res.status(200).json({ message: 'Login successful', data: rows });
+    } else {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
   } catch (error) {
     console.error("Request parsing error:", error);
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
@@ -58,6 +36,10 @@ export async function POST(req) {
 
 function hash(password) {
 
-    return CryptoJS.SHA256(password).toString();
+  var salt = password.slice(-6)
+  var userPw = password.slice(0, [-6])
+
+
+  return password_salt(userPw, salt)
 
 }
