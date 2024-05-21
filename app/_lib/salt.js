@@ -1,25 +1,24 @@
 import crypto from 'crypto';
 import CryptoJS from 'crypto-js';
 
-let password
-let pwdSalt
+// 회원가입 시
+export function password_salt(userPw){
 
-export function password_salt(userPw, salt = null){
+    let randombytes = crypto.randomBytes(3);
+    let salt = randombytes.toString('hex')
 
-    // 회원가입 시
-    if(salt == null){
-        let randombytes = crypto.randomBytes(3);
-        let salt = randombytes.toString('hex')
-    
-        pwdSalt = userPw + salt;
-    
-        password = CryptoJS.SHA256(pwdSalt).toString() + salt;
-    } else {
-        pwdSalt = userPw+salt
+    let pwdSalt = userPw + salt;
 
-        password = CryptoJS.SHA256(pwdSalt).toString();
-    }
+    return  CryptoJS.SHA256(pwdSalt).toString() + salt;
+}
+
+// 로그인 시 비밀번호 체크
+export function password_check(password, userPw){
+    let salt = password.slice(-6)
+    let pw = password.slice(0, [-6])
     
-    return password
-    
+    let hash_pw = CryptoJS.SHA256(userPw+salt).toString();
+
+    return pw == hash_pw
+
 }
