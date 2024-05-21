@@ -64,12 +64,7 @@ async function finalIdCheck(id) {
                         return false;
                     } else {
                         const count = results[0].count;
-
-                        if (count === 0) {
-                            return true;
-                        } else {
-                            return false;
-                        }
+                        return count == 0
                     }
                 });
             });

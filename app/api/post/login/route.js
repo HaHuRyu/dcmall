@@ -1,45 +1,43 @@
 // app/api/post/login/route.js
 import { NextResponse } from "next/server";
-import { password_salt } from "../../../_lib/salt";
-import { getConnection } from "../../../_lib/db";
-import CryptoJS from 'crypto-js';
+import { password_check } from "../../../_lib/salt";
+import { queryDatabase } from "../../../_lib/db";
 
 
 export async function POST(req) {
+
+  let res = NextResponse
+
   try {
     const text = await req.text();
     const params = new URLSearchParams(text);
     const id = params.get("id");
-    let password = params.get("password");
+    let userPw = params.get("password");
     
-    //password = hash(password);
+    const query = await queryDatabase(id);
 
-    console.log(id)
+    if(query.length > 0){
+      const user = query[0]
+      console.log('dsadsa' + query)
+      let answer = hash(user.password, userPw)
 
-    const connection = await getConnection();
-    const query = "SELECT * FROM user WHERE id = ?";
-    const rows = connection.query(query, [id]);
-
-    // 결과 처리
-    console.log("rows : " + rows);
-
-    if (rows.length > 0) {
-      return res.status(200).json({ message: 'Login successful', data: rows });
+      if(answer == true){
+        return res.json({ message: '로그인 성공'}, {status: 200});
+      } else {
+        return res.json({ message: '비밀번호가 일치하지 않습니다.' }, {status: 401} );
+      }
     } else {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.json({ message: '현재 입력하신 계정은 없는 계정입니다. 확인 후 다시 이용해주세요.' }, {status: 401});
     }
+
   } catch (error) {
     console.error("Request parsing error:", error);
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    return res.json({ error: "오류 발생" }, { status: 400 });
   }
 }
 
-function hash(password) {
+function hash(password, userPw) {
 
-  var salt = password.slice(-6)
-  var userPw = password.slice(0, [-6])
-
-
-  return password_salt(userPw, salt)
+  return password_check(password, userPw)
 
 }
