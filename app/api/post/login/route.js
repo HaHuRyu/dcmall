@@ -12,14 +12,14 @@ export async function POST(req) {
     const params = new URLSearchParams(text);
     const id = params.get("id");
     let userPw = params.get("password");
-    
+
     const query = await queryDatabase(id);
 
     if(query.length > 0){
       const user = query[0]
-      console.log('dsadsa' + query)
-      let answer = hash(user.password, userPw)
-
+      
+      console.log("ddd: "+id+" // "+answer);
+    
       if(answer == true){
         return res.json({ message: '로그인 성공'}, {status: 200});
       } else {

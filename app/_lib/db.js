@@ -71,6 +71,30 @@ export async function idCheck(id) {
     return { message: "다른 ID를 사용해주십시오.", status: 400 };
 }
 
+export async function nickCheck(nick){
+
+    if(nick !== null && !nick.includes(" ") && nick.length <= 20){
+        const connection = await getConnection();
+        const query = "SELECT COUNT(nickname) AS count From userinfo WHERE nickname = ?";0
+0
+        try{
+            const results = await connection.query(query, [nick]);
+
+            if (results[0][0].count == 0) 
+                return { message: "사용할 수 있는 닉네임", status: 200 };
+            
+            return { message: "이미 존재하는 닉네임", status: 200 };
+        }catch(error){
+            console.log("nickCheck error: "+error);
+            return {message : "Database query error", status: 500};
+        }finally{
+            if(connection)
+                await connection.end();
+        }
+    }
+    return { message: "다른 닉네임을 사용해주십시오.", status: 400 };
+}
+
 export async function finalIdCheck(id) {
     // 정규식을 사용하여 한글이 포함되어 있는지 확인
     const hasHangul = idStringCheck(id);
@@ -86,7 +110,6 @@ export async function finalIdCheck(id) {
                 return true;
 
             return false;
-
         }catch(error){
             console.error("Database query error from joinSever: ", error);
             return false;
@@ -99,22 +122,112 @@ export async function finalIdCheck(id) {
     return false;
 }
 
-export async function setUser(userId, userPw){
-    const connection = await getConnection();       
-    const query = "insert into user(id, password) values (?, ?)"
+export async function setUser(userId, userPw, email, nick) {
+    const connection = await getConnection();
+    const query1 = "INSERT INTO user(id, password) VALUES (?, ?)";
+    const findUserNum = "SELECT num FROM user WHERE id = ? && password = ?"
+    const query2 = "INSERT INTO userinfo(num, email, nickname) VALUES (?, ?, ?)";
 
-    try{
-        await connection.query(query, [userId, userPw])
-        return {message : "회원가입 성공!"}, {status : 200}
-    }catch(error){
-        console.log("setUser is Error");
-        return {message : "DataBase Query Error from joinServer"}, {status : 500}
-    }finally{
-        if(connection)
-            await connection.end();
+    try {
+        await connection.query(query1, [userId, userPw]);
+        let userNum = await connection.query(findUserNum, [userId, userPw]);
+        await connection.query(query2, [userNum[0][0].num, email, nick]);
+        return { message: "회원가입 성공!", status: 200 };
+    } catch (error) {
+        console.error("setUser error: ", error); // 구체적인 에러 메시지 출력
+        return { message: "DataBase Query Error", status: 500 };
+    }finally {
+        if (connection) await connection.end();
     }
 }
+
+export async function findID(email){
+    const connection = await getConnection();
+    const query = "SELECT num FROM userinfo WHERE email = ?";
+    const find = "SELECT id FROM user WHERE num = ?";
+
+    try {
+        const [userNum] = await connection.query(query, [email]);
+
+        if (userNum.length > 0) {
+            const [result] = await connection.query(find, [userNum[0].num]);
+
+            if (result.length > 0) {
+                return {message: "당신의 아이디는 " + result[0].id + " 입니다!", status: 200};
+            } else {
+                return {message: "해당 이메일로 가입된 아이디가 없습니다.", status: 400};
+            }
+        } else {
+            return {message: "해당 이메일로 가입된 아이디가 없습니다.", status: 400};
+        }
+    } catch (error) {
+        console.error("findID error: ", error);
+        return { message: "DataBase Query Error", status: 500 };
+    } finally {
+        if (connection) await connection.end();
+    }
+}
+
+export async function findPW(id, email){    //비밀번호 찾기가 아니라 재설정이 가능하도록 만들어야 겠는데?
+    const connection = await getConnection();
+    const query1 = "SELECT num FROM user WHERE id = ?";
+    const query2 = "SELECT email FROM userinfo WHERE num = ?";
+    const updateTokenQuery = "UPDATE userinfo SET reset_token = ?, reset_token_expiry = ? WHERE num = ?";
+
+    try{
+        const [userNum] = await connection.query(query1, [id]);
+        const [userEmail] = await connection.query(query2, [userNum[0].num]);
+
+        if(userEmail[0].email === email){
+            const token = crypto.randomBytes(32).toString('hex');
+            const expiry = new Date(Date.now() + 1200000);  // 20분 유효
+
+            await connection.query(updateTokenQuery, [token, expiry, userNum[0].num]);
+
+            const resetLink = `https://localhost:3000/reset-password?token=${token}`;
+            await sendEmail(email, 'Password Reset', `Reset your password using this link: ${resetLink}`);
+
+            return { message: "Password reset email sent", status: 200 };
+        }else{
+            return {message: "아이디나 이메일을 확인해주세요", status: 400};
+        }
+    }catch (error) {
+        console.error("findPw error: ", error);
+        return { message: "DataBase Query Error", status: 500 };
+    }finally{
+        if(connection) await connection.end();
+    }
+}
+
+
+export async function resetPassword(token, newPassword) {
+    const connection = await getConnection();
+    const query = "SELECT num, reset_token_expiry FROM userinfo WHERE reset_token = ?";
+    const updatePasswordQuery = "UPDATE user SET password = ? WHERE num = ?";
+    const clearTokenQuery = "UPDATE userinfo SET reset_token = NULL, reset_token_expiry = NULL WHERE num = ?";
+
+    try {
+        const [result] = await connection.query(query, [token]);
+
+        if (result.length === 0 || result[0].reset_token_expiry < new Date()) {
+            return { message: "Invalid or expired token", status: 400 };
+        }
+
+        const hashedPassword = hashPassword(newPassword);  // 비밀번호 해싱 함수
+        await connection.query(updatePasswordQuery, [hashedPassword, result[0].num]);
+        await connection.query(clearTokenQuery, [result[0].num]);
+
+        return { message: "Password reset successfully", status: 200 };
+    } catch (error) {
+        console.error("resetPassword error: ", error);
+        return { message: "Database Query Error", status: 500 };
+    } finally {
+        if (connection) await connection.end();
+    }
+}
+
 
 function idStringCheck(id){
     return /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(id);
 }
+

@@ -18,7 +18,7 @@ export function password_check(password, userPw){
     let pw = password.slice(0, [-6])
     
     let hash_pw = CryptoJS.SHA256(userPw+salt).toString();
-
+    
     return pw == hash_pw
 
 }
