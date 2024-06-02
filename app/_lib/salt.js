@@ -18,6 +18,8 @@ export function password_check(password, userPw){
     let pw = password.slice(0, [-6])
     
     let hash_pw = CryptoJS.SHA256(userPw+salt).toString();
+
+    console.log("비밀번호 비교 (DB쪽 비밀번호): ",pw," //(사용자 입력 비밀번호): ",hash_pw);
     
     return pw == hash_pw
 
