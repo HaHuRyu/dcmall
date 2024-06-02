@@ -3,8 +3,7 @@ import { NextResponse } from "next/server";
 import { resetPassword, finalIdCheck } from "../../../_lib/db";
 
 export async function POST(req) {
-    const { resetPw } = await req.json();
-    const { resetToken } = await req.json();
+    const { resetPw, resetToken } = await req.json();
     let result;
 
     try {

@@ -1,3 +1,4 @@
+'use client'
 import { useState } from 'react';
 import { XSS_Sanitize } from '../util/xssSanitize';
 import { useSearchParams } from 'next/navigation';
@@ -8,7 +9,7 @@ export default function Join() {
   const [password2, setPassword2] = useState('');
   const [sanitizedOutputPw2, setSanitizedOutputPw2] = useState('');
   const [isPasswordValid, setIsPasswordValid] = useState(false); // 비밀번호 유효성 상태 추가
-  const tokenParam = useSearchParams('token');
+  const tokenParam = useSearchParams().get('token');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,10 +32,10 @@ export default function Join() {
       }),
     });
 
-    const result = await response.json();
+    const result = await responsze.json();
 
     // 응답 처리 (필요시)
-    console.log('Result:', result);
+    console.log(result);
   };
 
   return (
@@ -48,7 +49,8 @@ export default function Join() {
                     id="firstPassword"
                     value={password}
                     onChange={(e) => {
-                        XSS_Sanitize(setPassword, setSanitizedOutputPw);
+                      setPassword(e.target.value);
+                      XSS_Sanitize(setPassword, setSanitizedOutputPw);
                     }}
                 />
 
@@ -59,14 +61,15 @@ export default function Join() {
                     id="secondPassword"
                     value={password2}
                     onChange={(e) => {
-                        XSS_Sanitize(setPassword2, setSanitizedOutputPw2);
-                    setIsPasswordValid(finalPasswordCheck(sanitizedOutputPw, sanitizedOutputPw2)); // 비밀번호 유효성 확인
+                      setPassword2(e.target.value);
+                      XSS_Sanitize(setPassword2, setSanitizedOutputPw2);
+                      setIsPasswordValid(finalPasswordCheck(sanitizedOutputPw, sanitizedOutputPw2)); // 비밀번호 유효성 확인
                     }}
                 />
             <p id="checkBox" name="checkText">올바르지 않은 비밀번호 입니다.</p>
 
             {/* 유효한 비밀번호이고 두 비밀번호가 일치할 때 버튼 활성화 */}
-            <button type="submit" disabled={!isPasswordValid || password !== password2} ></button>
+            <button type="submit" disabled={!isPasswordValid || password !== password2} >비밀번호 재설정하기</button>
         </form>
       
     </div>
@@ -75,6 +78,7 @@ export default function Join() {
 
 function finalPasswordCheck(pw1, pw2){
     //정규표현식 영문 포함 + 숫자 포함 + 특수문자 + 길이 8자리 이상 문자열(반드시 모두 포함)
+    console.log(pw1," // ",pw2);
     const specialChars = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/;
     return specialChars.test(pw1) && (pw1 === pw2);
 }

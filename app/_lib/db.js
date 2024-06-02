@@ -5,6 +5,7 @@
 콜백 기반 API: 더 복잡한 콜백 헬(callback hell)을 피하기 어려울 수 있습니다.
 */
 import mysql from 'mysql2/promise';
+import crypto from 'crypto';
 
 let connection;
 
@@ -184,10 +185,10 @@ export async function findPW(id, email){    //비밀번호 찾기가 아니라 �
 
             await connection.query(updateTokenQuery, [token, expiry, userNum[0].num]);
 
-            const resetLink = `https://localhost:3000/reset-password?token=${token}`;
-            await sendEmail(email, 'Password Reset', `Reset your password using this link: ${resetLink}`);
+            // 리셋 링크 생성
+            const resetLink = `http://localhost:3000/reset-password?token=${token}`;
 
-            return { message: "Password reset email sent", status: 200 };
+            return { message: resetLink, status: 200 };
         }else{
             return {message: "아이디나 이메일을 확인해주세요", status: 400};
         }

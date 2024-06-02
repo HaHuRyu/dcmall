@@ -26,7 +26,12 @@ export default function Join() {
     const result = await response.json();
 
     // 응답 처리 (필요시)
-    console.log('Result:', result);
+    if (response.status === 200) {
+      // resetLink로 이동
+      window.location.href = result.message;
+    } else {
+      alert(result.message);
+    }
   };
 
   return (
