@@ -50,7 +50,7 @@ export default function Join() {
                     value={password}
                     onChange={(e) => {
                       setPassword(e.target.value);
-                      XSS_Sanitize(setPassword, setSanitizedOutputPw);
+                      XSS_Sanitize(password, setSanitizedOutputPw);
                     }}
                 />
 
@@ -62,8 +62,10 @@ export default function Join() {
                     value={password2}
                     onChange={(e) => {
                       setPassword2(e.target.value);
-                      XSS_Sanitize(setPassword2, setSanitizedOutputPw2);
+                      XSS_Sanitize(password2, setSanitizedOutputPw2);
                       setIsPasswordValid(finalPasswordCheck(sanitizedOutputPw, sanitizedOutputPw2)); // 비밀번호 유효성 확인
+                      console.log('1' + password +'//' + password2)
+                      console.log(sanitizedOutputPw + '//' + sanitizedOutputPw2)
                     }}
                 />
             <p id="checkBox" name="checkText">올바르지 않은 비밀번호 입니다.</p>
