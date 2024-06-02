@@ -214,8 +214,7 @@ export async function resetPassword(token, newPassword) {
             return { message: "Invalid or expired token", status: 400 };
         }
 
-        const hashedPassword = hashPassword(newPassword);  // 비밀번호 해싱 함수
-        await connection.query(updatePasswordQuery, [hashedPassword, result[0].num]);
+        await connection.query(updatePasswordQuery, [newPassword, result[0].num]);
         await connection.query(clearTokenQuery, [result[0].num]);
 
         return { message: "Password reset successfully", status: 200 };

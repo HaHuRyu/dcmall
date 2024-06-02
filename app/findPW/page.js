@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { XSS_Sanitize } from '../util/xssSanitize';
 
-export default function Join() {
+export default function FindPW() {
   const [email, setEmail] = useState('');
   const [sanitizedOutputEmail, setSanitizedOutputEmail] = useState('');
   const [id, setId] = useState('');

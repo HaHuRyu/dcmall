@@ -15,6 +15,8 @@ export async function POST(req) {
     
     const query = await queryDatabase(id);
 
+    console.log("사용자 입력아이디: "+userPw);
+
     if(query.length > 0){
       const user = query[0]
       
