@@ -10,6 +10,5 @@ export function XSS_Sanitize(setInput, setsanitizedOutput){
 
         const sanitized = DOMpurify.sanitize(userInput);
         setsanitizedOutput(sanitized);
-        
     }
 }

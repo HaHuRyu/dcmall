@@ -244,6 +244,42 @@ export async function resetPassword(token, newPassword) {
     }
 }
 
+export async function findSessionById(id, newSession){
+    const connection = await getConnection();
+    const sessionId = "SELECT sessionId FROM userinfo WHERE num = (SELECT num FROM user WHERE id = ?)";
+
+    try{
+        const [result] = await connection.query(sessionId, [id]);
+
+        if(result.length > 0 && newSession != result[0].sessionId){
+            return {message: result[0].sessionId, status:200};
+        }else{
+            return {message: "null", status:400};
+        }
+    }catch(error){
+        console.error("findSessionById error: ",error);
+        return {message: "null", status:400};
+    }finally{
+        if(connection) connection.end();
+    }
+}
+
+export async function updateSessionId(id, newSession) {
+    const connection = await getConnection();
+    const query = "UPDATE userinfo SET sessionId = ? WHERE num = (SELECT num FROM user WHERE id = ?)";
+
+    try {
+        await connection.query(query, [newSession, id]);
+
+        return {message: "Success!", status: 200};
+    } catch (error) {
+        console.error("saveSessionId error: ", error);
+        return { message: "saveSessionId failed", status: 400 };
+    } finally {
+        if (connection) connection.end();
+    }
+}
+
 
 function idStringCheck(id){
     return /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(id);
