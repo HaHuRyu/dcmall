@@ -1,4 +1,3 @@
-import CryptoJS from 'crypto-js';
 import { password_salt } from '../../../_lib/salt';
 import {NextResponse} from "next/server"
 import {getConnection} from "../../../_lib/db"
