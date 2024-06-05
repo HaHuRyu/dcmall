@@ -15,11 +15,13 @@ export async function POST(req) {
     
     const query = await queryDatabase(id);
 
+    console.log("사용자 입력아이디: "+userPw);
+
     if(query.length > 0){
       const user = query[0]
-      console.log('dsadsa' + query)
+      
       let answer = hash(user.password, userPw)
-
+    
       if(answer == true){
         return res.json({ message: '로그인 성공'}, {status: 200});
       } else {
