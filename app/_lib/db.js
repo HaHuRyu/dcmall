@@ -249,7 +249,7 @@ export async function findSessionById(id, newSession){
 export async function updateSessionId(id, newSession) {
     const connection = await getConnection();
     const query = "UPDATE userinfo SET sessionId = ? WHERE num = (SELECT num FROM user WHERE id = ?)";
-    console.log("1818181818: "+newSession);
+
     try {
         await connection.query(query, [newSession, id]);
 
