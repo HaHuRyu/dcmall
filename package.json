@@ -17,6 +17,7 @@
     "crypto-js": "^4.2.0",
     "dompurify": "^3.1.5",
     "dotenv": "^16.4.5",
+    "git-filter-repo": "^0.0.30",
     "jsonwebtoken": "^9.0.2",
     "mysql": "^2.18.1",
     "mysql2": "^3.9.7",
