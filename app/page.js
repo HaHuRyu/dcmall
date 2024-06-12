@@ -1,11 +1,5 @@
-import React from "react";
+import Home from './api/components/home';
 
-export default function Home() {
-
-  return (
-    <div>
-      <h4>dcmall</h4>
-      <a href='/signIn'><button>signIn</button></a>
-    </div>
-  );
+export default function Page() {
+  return <Home />;
 }
