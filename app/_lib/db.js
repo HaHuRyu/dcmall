@@ -280,6 +280,21 @@ export async function updateSessionId(id, newSession) {
     }
 }
 
+export async function resetSessionId(session){
+    const connection = await getConnection();
+    const query = "UPDATE userinfo SET sessionId = NULL WHERE sessionId = ?";
+
+    try{
+        await connection.query(query, [session]);
+
+        return {message: "deleteSuccess!", status: 200};
+    }catch(error){
+        console.error("deleteSessionId error: ",error);
+        return {message: "deleteSessionId failed", status: 400};
+    }finally{
+        if(connection) connection.end();
+    }
+}
 
 function idStringCheck(id){
     return /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(id);
