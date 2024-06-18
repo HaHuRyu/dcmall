@@ -2,6 +2,7 @@ import React from "react";
 import { cookies } from "next/headers";
 import dynamic from "next/dynamic";
 
+
 // 클라이언트 컴포넌트를 동적으로 로드합니다.
 const ClientComponent = dynamic(() => import("./ClientComponent"), {
   ssr: false,

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import {supabase} from '../util/supabase';
 
 export async function getEmbedding(text) {
   const response = await axios.post(
@@ -15,7 +16,16 @@ export async function getEmbedding(text) {
     }
   );
 
-  console.log("SSSSSS: ",response.data.data[0].embedding);  //이 벡터 값을 저장해야 한다.
+  try{
+    const embedding = response.data.data[0].embedding;
+    const postid = parseInt(Math.random() * 100000);
+
+    await supabase.from('dcembedding').insert([
+      { postid: postid, embedding: embedding }
+    ]);
+  }catch(error){
+    console.error("임베딩 저장 시도: "+error);
+  }
   return response.data.data[0].embedding;
 }
 
