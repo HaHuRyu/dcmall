@@ -45,6 +45,8 @@ export default function ClientComponent({ initialSession }) {
           <button type="submit">로그아웃</button>
         </form>
       )}
+
+      <a href='/api/receive-titles'><button>발사버튼</button></a>
     </div>
   );
 }
