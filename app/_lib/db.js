@@ -169,33 +169,51 @@ export async function findID(email){
     }
 }
 
-export async function findPW(id, email){    //비밀번호 찾기가 아니라 재설정이 가능하도록 만들어야 겠는데?
+export async function writeEmailToken(id, email){    //비밀번호 찾기가 아니라 재설정이 가능하도록 만들어야 겠는데?
     const connection = await getConnection();
     const query1 = "SELECT num FROM user WHERE id = ?";
     const query2 = "SELECT email FROM userinfo WHERE num = ?";
-    const updateTokenQuery = "UPDATE userinfo SET reset_token = ?, reset_token_expiry = ? WHERE num = ?";
+    const updatequery = "UPDATE userinfo SET email_token = ? WHERE num = ?"
 
     try{
         const [userNum] = await connection.query(query1, [id]);
         const [userEmail] = await connection.query(query2, [userNum[0].num]);
 
-        if(userEmail[0].email === email){
-            const token = crypto.randomBytes(32).toString('hex');
-            const expiry = new Date(Date.now() + 1200000);  // 20분 유효
+        let randombytes = crypto.randomBytes(8);
+        let email_token = randombytes.toString('hex')
 
-            await connection.query(updateTokenQuery, [token, expiry, userNum[0].num]);
-
-            // 리셋 링크 생성
-            const resetLink = `http://localhost:3000/reset-password?token=${token}`;
-
-            return { message: resetLink, status: 200 };
-        }else{
-            return {message: "아이디나 이메일을 확인해주세요", status: 400};
-        }
+        await connection.query(updatequery, [email_token, userNum[0].num])
+        
+        return { email_token : email_token, email : userEmail[0].email, status: 200}
     }catch (error) {
         console.error("findPw error: ", error);
-        return { message: "DataBase Query Error", status: 500 };
+        return { message: "아이디나 이메일을 확인해주세요", status: 400 };
     }finally{
+        if(connection) await connection.end();
+    }
+}
+
+export async function updatePassword(email_token){
+    const connection = await getConnection();
+    const selectNumQuery = "SELECT num FROM userinfo WHERE email_token = ?"
+    const updateTokenQuery = "UPDATE userinfo SET reset_token = ?, reset_token_expiry = ? WHERE num = ?";
+
+    try{
+        const [userNum] = await connection.query(selectNumQuery, [email_token])
+    
+        const token = crypto.randomBytes(32).toString('hex');
+        const expiry = new Date(Date.now() + 1200000);  // 20분 유효
+
+        await connection.query(updateTokenQuery, [token, expiry, userNum[0].num]);
+
+        // 리셋 링크 생성
+        const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+
+        return { message: resetLink, status: 200 };
+        
+    }catch {
+        return {message : '이메일의 토큰과 일치하지 않습니다', status: 400}
+    } finally{
         if(connection) await connection.end();
     }
 }
@@ -226,6 +244,57 @@ export async function resetPassword(token, newPassword) {
     }
 }
 
+export async function findSessionById(id, newSession){
+    const connection = await getConnection();
+    const sessionId = "SELECT sessionId FROM userinfo WHERE num = (SELECT num FROM user WHERE id = ?)";
+
+    try{
+        const [result] = await connection.query(sessionId, [id]);
+
+        if(result.length > 0 && newSession != result[0].sessionId){
+            return {message: result[0].sessionId, status:200};
+        }else{
+            return {message: "null", status:400};
+        }
+    }catch(error){
+        console.error("findSessionById error: ",error);
+        return {message: "null", status:400};
+    }finally{
+        if(connection) connection.end();
+    }
+}
+
+export async function updateSessionId(id, newSession) {
+    const connection = await getConnection();
+    const query = "UPDATE userinfo SET sessionId = ? WHERE num = (SELECT num FROM user WHERE id = ?)";
+
+    try {
+        await connection.query(query, [newSession, id]);
+
+        return {message: "Success!", status: 200};
+    } catch (error) {
+        console.error("saveSessionId error: ", error);
+        return { message: "saveSessionId failed", status: 400 };
+    } finally {
+        if (connection) connection.end();
+    }
+}
+
+export async function resetSessionId(session){
+    const connection = await getConnection();
+    const query = "UPDATE userinfo SET sessionId = NULL WHERE sessionId = ?";
+
+    try{
+        await connection.query(query, [session]);
+
+        return {message: "deleteSuccess!", status: 200};
+    }catch(error){
+        console.error("deleteSessionId error: ",error);
+        return {message: "deleteSessionId failed", status: 400};
+    }finally{
+        if(connection) connection.end();
+    }
+}
 
 function idStringCheck(id){
     return /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(id);
