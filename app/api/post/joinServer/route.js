@@ -1,7 +1,6 @@
-import CryptoJS from 'crypto-js';
 import { password_salt } from '../../../_lib/salt';
 import {NextResponse} from "next/server"
-import {getConnection} from "../../../_lib/db"
+import {setUser, finalIdCheck, nickCheck} from "../../../_lib/db"
 
 //ID의 중복 확인과, pw 올바른 형식 한 번 더 확인하기
 // @/ => 현재 앱의 최상위 경로
@@ -12,67 +11,26 @@ export async function POST(req){
 
     let userId = params.get("inputID");
     let userPw = params.get("inputPW");
-    const safePw = finalPasswordCheck(userPw);
+    let Email = params.get("email");
+    let nickName = params.get("inputNickname");
 
-    const safeId = finalIdCheck(userId);
+    const safePw = await finalPasswordCheck(userPw);
+    const safeId = await finalIdCheck(userId);  //await으로 동기처리를 해 이 두 부분이 확실하게 실행된 후에 아래가 진행되도록 바꾼다.
+    const safeNick = await nickCheck(nickName);
 
-    if(safeId && safePw){
+    if(safeId && safePw && safeNick){
         var hashPw = password_salt(userPw)
         //DB에 저장하는 부분을 집어 넣자
-        const dbConnection = await getConnection();
-        
-        const query = "insert into user(id, password) values (?, ?)"
+        setUser(userId, hashPw, Email, nickName);
 
-            return new Promise((resolve, reject) => {
-                dbConnection.query(query, [userId, hashPw], (err) => {
-                    if(err){
-                        reject(
-                            NextResponse.json({message : "DataBase Query Error from joinServer"}, {status : 500})
-                        );
-                    }
-
-                    resolve(
-                        NextResponse.json({message : "Successful signIn"}, {status : 200})
-                    );
-                })
-            })
-
+        return NextResponse.json({message : "회원가입 성공!"}, {status : 200});
     }
     else{
-        return NextResponse.json({message : "Please Check your id or password"}, {status : 400});
+        return NextResponse.json({message : "ID와 비밀번호를 다시 확인해주세요."}, {status : 400});
     }
 }
 
-async function finalIdCheck(id) {
-    // 정규식을 사용하여 한글이 포함되어 있는지 확인
-    const hasHangul = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(id);
 
-    // id도 나름의 기준이 존재하겠지만, 일단 띄어쓰기가 없고 아무것도 안 적은 방식 외에는 모두 OK로 할 예정(임시)
-    if (id !== null && !id.includes(" ") && id.length <= 50 && !hasHangul) {
-        const connection = getConnection();
-
-        if (!connection) {
-            console.log("DB Connect Failed from joinServer");
-            return false;
-        } else {
-            const query = "SELECT COUNT(id) AS count FROM user WHERE id = ?";
-
-            return new Promise((resolve, reject) => {
-                connection.query(query, [id], (err, results) => {
-                    if (err) {
-                        console.error("Database query error from joinSever: ", err);
-                        return false;
-                    } else {
-                        const count = results[0].count;
-                        return count == 0
-                    }
-                });
-            });
-        }
-    }
-
-    return false;
-}
 
 function finalPasswordCheck(password){
     //정규표현식 영문 포함 + 숫자 포함 + 특수문자 + 길이 8자리 이상 문자열(반드시 모두 포함)
