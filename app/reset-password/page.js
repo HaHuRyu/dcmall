@@ -45,34 +45,21 @@ export default function ResetPassword() {
             <p>비밀번호</p>
                 <input
                     type="password"
-                    name="firstPassword"
-                    id="firstPassword"
-                    value={password}
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                    }}
-                    onBlur={() =>{
-                      XSS_Sanitize(setPassword, setSanitizedOutputPw);
-                    }}
+                    value={sanitizedOutputPw}
+                    onChange={XSS_Sanitize(setPassword, setSanitizedOutputPw)}
                 />
 
             <p>비밀번호 확인</p>
                 <input
                     type="password"
-                    name="secondPassword"
-                    id="secondPassword"
-                    value={password2}
-                    onChange={(e) => {
-                      setPassword2(e.target.value);
-                    }}
+                    value={sanitizedOutputPw2}
+                    onChange={XSS_Sanitize(setPassword2, setSanitizedOutputPw2)}
                     onBlur={() =>{
-                      console.log(password," // ",password2);
-                      XSS_Sanitize(setPassword2, setSanitizedOutputPw2);
-                      setIsPasswordValid(finalPasswordCheck(password, password2)); // 비밀번호 유효성 확인
+                      setIsPasswordValid(finalPasswordCheck(sanitizedOutputPw, sanitizedOutputPw2)); // 비밀번호 유효성 확인
                     }}
                 />
             {/* 유효한 비밀번호이고 두 비밀번호가 일치할 때 버튼 활성화 */}
-            <button type="submit" disabled= {!isPasswordValid || password != password2} >비밀번호 재설정하기</button>
+            <button type="submit" disabled= {!isPasswordValid || sanitizedOutputPw != sanitizedOutputPw2} >비밀번호 재설정하기</button>
         </form>
       
     </div>

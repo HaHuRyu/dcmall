@@ -31,7 +31,7 @@ export default function Join() {
           type="email"
           name="email"
           id="email"
-          value={email}
+          value={sanitizedOutputEmail}
           onChange={XSS_Sanitize(setEmail, setSanitizedOutputEmail)}
         />
 

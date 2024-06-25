@@ -62,7 +62,7 @@ export default function FindPW() {
           type="email"
           name="email"
           id="email"
-          value={email}
+          value={sanitizedOutputEmail}
           onChange={XSS_Sanitize(setEmail, setSanitizedOutputEmail)}
         />
 
@@ -71,7 +71,7 @@ export default function FindPW() {
           type="text"
           name="inputId"
           id="inputId"
-          value={id}
+          value={sanitizedOutputId}
           onChange={XSS_Sanitize(setId, setSanitizedOutputId)}
         />
 
