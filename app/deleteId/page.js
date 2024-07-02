@@ -8,13 +8,6 @@ export default function deleteId() {
     const [inputPW, setInputPW] = useState('');
     const [sanitizedOutputPW, setSanitizedOutputPW] = useState('');
 
-    // 쿠키 값을 가져오는 헬퍼 함수
-    function getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
-    }
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
