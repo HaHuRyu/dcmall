@@ -6,7 +6,9 @@ input에 태그를 붙인 입력값을 검열해준다.
 export function XSS_Sanitize(setInput, setsanitizedOutput){
     return (e) => {
         const userInput = e.target.value;
+        console.log('aa' + userInput)
         setInput(userInput);
+        console.log('bb' + setInput)
 
         const sanitized = DOMpurify.sanitize(userInput);
         setsanitizedOutput(sanitized);
