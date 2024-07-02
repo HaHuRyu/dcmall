@@ -6,8 +6,6 @@ export async function POST(req) {
     const { resetPw, resetToken } = await req.json();
     let result;
 
-    console.log("얘가 잘못됐나?: "+resetPw);
-
     try {
         var hashPw = password_salt(resetPw)
             

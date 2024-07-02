@@ -296,6 +296,36 @@ export async function resetSessionId(session){
     }
 }
 
+export async function getPasswordById(id){
+    const connection = await getConnection();
+    const query = "SELECT password From user WHERE id = ?";
+    try{
+        const [result] = await connection.query(query, [id]);
+
+        return {message: result[0].password, status: 200};
+    }catch(err){
+        return {message: "삭제진행 불가능", status: 400};
+    }finally{
+        if(connection) connection.end();
+    }
+}
+
+export async function deleteUser(id){
+    const connection = await getConnection();
+    const deleteUserInfo = "DELETE FROM userinfo WHERE num = (SELECT num FROM user WHERE id = ?)";
+    const deleteUser = "DELETE FROM user WHERE id = ?";
+    try{
+        await connection.query(deleteUserInfo, [id]);
+        await connection.query(deleteUser, [id]);
+
+        return {message: "삭제가 완료되었습니다!", status: 200};
+    }catch(err){
+        return {message: "삭제에 실패하였습니다.", status: 400};
+    }finally{
+        if(connection) connection.end();
+    }
+}
+
 function idStringCheck(id){
     return /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(id);
 }
