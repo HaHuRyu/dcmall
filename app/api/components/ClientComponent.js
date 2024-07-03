@@ -5,9 +5,37 @@
 home.js는 서버 컴포넌트로서의 처리 쿠키에서 세션을 가져오는 처리를 맡고 있다.
 */
 import React, { useState, useEffect } from "react";
+import {searchRecommand} from "../../util/searchRecommand";
 
 export default function ClientComponent({ initialSession }) {
   const [loginSession, setLoginSession] = useState(initialSession);
+  const [searchWord, setSearchWord] = useState('');
+  const [resultList, setResultList] = useState([]);
+
+  const searchSubmit = async (e) => {
+    e.preventDefault();
+    try{
+      const response = await fetch('/api/post/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type' : 'application/json'
+        },
+        body: JSON.stringify({
+          searchText: searchWord
+        })
+      });
+
+      const data = await response.json();
+      const recommandList = data.recommendations;
+
+      if(response.status === 200){
+        setResultList(recommandList);
+      }
+      
+    }catch(error){
+      console.log("search fetch Error: "+error);
+    }
+  };
 
   useEffect(() => {
     setLoginSession(initialSession);
@@ -46,6 +74,26 @@ export default function ClientComponent({ initialSession }) {
           </form>
           <a href= "../deleteId"><button type="submit">아이디 삭제</button></a>
         </div>    
+      )}
+
+      <form onSubmit={searchSubmit}>
+        <input 
+        type="text"
+        value={searchWord}
+        onChange={(e) => setSearchWord(e.target.value)}/>
+        <button type="submit">검색하기</button>
+      </form>
+
+      {resultList.length > 0 ? (
+        <ul>
+          {resultList.map((result, index) => (
+            <li key={index}>
+              {result.title}: {result.percentage.toFixed(2)}%
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>검색 결과가 없습니다.</p>
       )}
     </div>
   );
