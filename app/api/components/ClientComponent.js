@@ -98,3 +98,4 @@ export default function ClientComponent({ initialSession }) {
     </div>
   );
 }
+//toFixed(2)는 소수점 아래를 2자리로 하는 것
