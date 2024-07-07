@@ -15,7 +15,10 @@ export async function POST(req) {
     const response = NextResponse.json({ message: "Logged out successfully" }, { status: 200 });
 
     // 쿠키 삭제
-    response.cookies.set('next-session', '', { maxAge: -1, path: '/' });
+    response.cookies.set('next-session', '', { 
+      expires: new Date(0),
+      path: '/'
+    });
 
     return response;
   } catch (error) {

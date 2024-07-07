@@ -1,14 +1,13 @@
 import { getEmbedding } from "../../util/openai-utils";
-/*둘 다 새로고침 해주면 통신은 된다 (서로 메세지를 주고 받음)
-근데 titles이 비어있음 얘를 띄워두고 spring을 새로고침
+/*240625 서로 titles 가능
 */
 export async function POST(req) {
     try {
         const titles = await req.json();
-        await console.log("I got titles!: ",titles);
 
         // 임베딩 계산
         for (const title of titles) {
+            console.log("가져온 제목: ",title);
             await getEmbedding(title);
         }
 
