@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react';
-import { XSS_Sanitize } from '../util/xssSanitize';
+import { XSS_Sanitize } from '../../util/xssSanitize';
 
 export default function deleteId() {
     const [inputID, setInputID] = useState('');

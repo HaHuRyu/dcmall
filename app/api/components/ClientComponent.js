@@ -36,7 +36,7 @@ export default function ClientComponent({ initialSession }) {
   return (
     <div>
       {loginSession == null ? (
-        <a href='/signIn'>
+        <a href='/login/signIn'>
           <button>로그인</button>
         </a>
       ) : (
