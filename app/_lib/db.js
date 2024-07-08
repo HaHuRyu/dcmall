@@ -172,12 +172,12 @@ export async function findID(email){
 export async function writeEmailToken(id, email){    //비밀번호 찾기가 아니라 재설정이 가능하도록 만들어야 겠는데?
     const connection = await getConnection();
     const query1 = "SELECT num FROM user WHERE id = ?";
-    const query2 = "SELECT email FROM userinfo WHERE num = ?";
+    const query2 = "SELECT email FROM userinfo WHERE email = ?";
     const updatequery = "UPDATE userinfo SET email_token = ? WHERE num = ?"
 
     try{
         const [userNum] = await connection.query(query1, [id]);
-        const [userEmail] = await connection.query(query2, [userNum[0].num]);
+        const [userEmail] = await connection.query(query2, [email]);
 
         let randombytes = crypto.randomBytes(8);
         let email_token = randombytes.toString('hex')
@@ -291,6 +291,36 @@ export async function resetSessionId(session){
     }catch(error){
         console.error("deleteSessionId error: ",error);
         return {message: "deleteSessionId failed", status: 400};
+    }finally{
+        if(connection) connection.end();
+    }
+}
+
+export async function getPasswordById(id){
+    const connection = await getConnection();
+    const query = "SELECT password From user WHERE id = ?";
+    try{
+        const [result] = await connection.query(query, [id]);
+
+        return {message: result[0].password, status: 200};
+    }catch(err){
+        return {message: "삭제진행 불가능", status: 400};
+    }finally{
+        if(connection) connection.end();
+    }
+}
+
+export async function deleteUser(id){
+    const connection = await getConnection();
+    const deleteUserInfo = "DELETE FROM userinfo WHERE num = (SELECT num FROM user WHERE id = ?)";
+    const deleteUser = "DELETE FROM user WHERE id = ?";
+    try{
+        await connection.query(deleteUserInfo, [id]);
+        await connection.query(deleteUser, [id]);
+
+        return {message: "삭제가 완료되었습니다!", status: 200};
+    }catch(err){
+        return {message: "삭제에 실패하였습니다.", status: 400};
     }finally{
         if(connection) connection.end();
     }

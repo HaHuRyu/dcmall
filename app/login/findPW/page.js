@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react';
-import { XSS_Sanitize } from '../util/xssSanitize';
+import { XSS_Sanitize } from '../../util/xssSanitize';
 
 export default function FindPW() {
   const [email, setEmail] = useState('');

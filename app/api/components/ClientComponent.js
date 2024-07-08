@@ -33,20 +33,20 @@ export default function ClientComponent({ initialSession }) {
       console.error("로그아웃 오류!", error);
     }
   };
-
   return (
     <div>
       {loginSession == null ? (
-        <a href='/signIn'>
+        <a href='/login/signIn'>
           <button>로그인</button>
         </a>
       ) : (
-        <form onSubmit={handleSubmit}>
-          <button type="submit">로그아웃</button>
-        </form>
+        <div>
+          <form onSubmit={handleSubmit}>
+            <button type="submit">로그아웃</button>
+          </form>
+          <a href= "../deleteId"><button type="submit">아이디 삭제</button></a>
+        </div>    
       )}
-
-      <a href='/api/receive-titles'><button>발사버튼</button></a>
     </div>
   );
 }

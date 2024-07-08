@@ -1,6 +1,8 @@
 import axios from 'axios';
 import {supabase} from '../util/supabase';
-
+/*
+240625 임베딩까지도 잘 계산하는데 DB 저장이 제대로 이뤄지지 않는 경우
+*/
 export async function getEmbedding(text) {
   const response = await axios.post(
     'https://api.openai.com/v1/embeddings',
@@ -16,16 +18,25 @@ export async function getEmbedding(text) {
     }
   );
 
-  try{
+  try {
     const embedding = response.data.data[0].embedding;
-    const postid = parseInt(Math.random() * 100000);
+    // 테이블 이름을 큰따옴표로 묶어 대소문자를 구분
 
-    await supabase.from('dcembedding').insert([
-      { postid: postid, embedding: embedding }
-    ]);
-  }catch(error){
-    console.error("임베딩 저장 시도: "+error);
+    const {data, error} = await supabase.rpc('search_items', {
+      query_embedding: embedding,
+      match_threshold: 0.1,
+      match_count: 10
+    })
+
+    if (error) console.error('Error:', error)
+      else console.log('Similar items:', data)
+    
+  } catch (error) {
+    console.error("임베딩 저장 시도 실패: " + error.message);
   }
+  
+  
+
   return response.data.data[0].embedding;
 }
 
@@ -36,5 +47,6 @@ export function cosineSimilarity(vecA, vecB) {  //코사인 유사도는 공식�
 
   return dotProduct / (normA * normB);
 }
+
 
 export default { getEmbedding, cosineSimilarity };

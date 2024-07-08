@@ -10,7 +10,8 @@ const nextConfig = {
     DB_DATABASE: process.env.DB_DATABASE,
     service: process.env.EMAIL_SERVICE,
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD
+    pass: process.env.EMAIL_PASSWORD,
+    key: process.env.OPEN_API_KEY
   }
 }
 

@@ -35,7 +35,8 @@ export default function ResetPassword() {
     const result = await response.json();
 
     // 응답 처리 (필요시)
-    console.log(result);
+    alert(result.message);
+    window.location.href = '/';
   };
 
   return (
