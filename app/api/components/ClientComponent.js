@@ -15,7 +15,7 @@ export default function ClientComponent({ initialSession }) {
   const searchSubmit = async (e) => {
     e.preventDefault(); //아랫코드가 다 실행되고 나서 새로고침되는 것을 막는다
     try{
-      const response = await fetch('/api/post/search', {
+      const response = await fetch('/api/post/embedding', {
         method: 'POST',
         headers: {
           'Content-Type' : 'application/json'
@@ -24,6 +24,8 @@ export default function ClientComponent({ initialSession }) {
           searchText: searchWord
         })
       });
+
+      console.log("test2 " + response)
 
       const data = await response.json();
       const recommandList = data.recommendations;
@@ -88,7 +90,7 @@ export default function ClientComponent({ initialSession }) {
         <ul>
           {resultList.map((result, index) => (
             <li key={index}>
-              {result.title}: {result.percentage.toFixed(2)}%
+              {result.title}: {Number(result.similarity * 100).toFixed(2)}%
             </li>
           ))}
         </ul>
