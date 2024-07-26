@@ -172,12 +172,12 @@ export async function findID(email){
 export async function writeEmailToken(id, email){    //비밀번호 찾기가 아니라 재설정이 가능하도록 만들어야 겠는데?
     const connection = await getConnection();
     const query1 = "SELECT num FROM user WHERE id = ?";
-    const query2 = "SELECT email FROM userinfo WHERE num = ?";
+    const query2 = "SELECT email FROM userinfo WHERE email = ?";
     const updatequery = "UPDATE userinfo SET email_token = ? WHERE num = ?"
 
     try{
         const [userNum] = await connection.query(query1, [id]);
-        const [userEmail] = await connection.query(query2, [userNum[0].num]);
+        const [userEmail] = await connection.query(query2, [email]);
 
         let randombytes = crypto.randomBytes(8);
         let email_token = randombytes.toString('hex')

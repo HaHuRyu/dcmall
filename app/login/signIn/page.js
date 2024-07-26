@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react';
-import { XSS_Sanitize } from '../util/xssSanitize';
+import { XSS_Sanitize } from '../../util/xssSanitize';
 
 export default function SignIn() {
   const [inputID, setInputID] = useState('');
@@ -53,9 +53,9 @@ export default function SignIn() {
         <button type="submit">로그인</button>
       </form>
 
-      <a href="/join"><button>회원가입</button></a>
-      <a href="/findID"><button>ID 찾기</button></a>
-      <a href="/findPW"><button>비밀번호 찾기</button></a>
+      <a href="/login/join"><button>회원가입</button></a>
+      <a href="/login/findID"><button>ID 찾기</button></a>
+      <a href="/login/findPW"><button>비밀번호 찾기</button></a>
     </div>
   );
 }

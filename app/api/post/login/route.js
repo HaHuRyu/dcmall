@@ -51,6 +51,7 @@ function hash(password, userPw) {
 
 }
 
+
 async function createSessionId() {
   const sessionId = await uuidv4();
 
