@@ -8,7 +8,7 @@ export async function POST(req){
 
     const emtext = getEmbedding(searchText)
 
-    console.log("test" + emtext)
+    console.log("testdsadsa" + emtext)
 
     return emtext;
 

@@ -27,6 +27,13 @@ export async function getEmbedding(text) {
     match_count: 30
   })
 
+  console.log(await supabase.rpc('search_items', {
+    query_embedding: embedding,
+    match_threshold: 0.1,
+    match_count: 30
+  }))
+  
+  
   if (error) {
     console.error('Error:', error)
   } else {
