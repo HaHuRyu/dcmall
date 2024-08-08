@@ -76,7 +76,7 @@ export async function nickCheck(nick){
 
     if(nick !== null && !nick.includes(" ") && nick.length <= 20){
         const connection = await getConnection();
-        const query = "SELECT COUNT(nickname) AS count From userinfo WHERE nickname = ?";0
+        const query = "SELECT COUNT(nickname) AS count From userinfo WHERE nickname = ?";
 0
         try{
             const results = await connection.query(query, [nick]);

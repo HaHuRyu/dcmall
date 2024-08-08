@@ -25,12 +25,13 @@ export default function ClientComponent({ initialSession }) {
         })
       });
 
-      console.log("test2 " + response)
+      console.log("test2 " + response.status)
 
       const data = await response.json();
       const recommandList = data.recommendations;
 
       if(response.status === 200){
+        console.log(recommandList.length)
         setResultList(recommandList);
       }
       
