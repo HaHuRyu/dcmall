@@ -43,30 +43,34 @@ export default function ClientComponent({ initialSession }) {
     setLoginSession(initialSession);
   }, [initialSession]);
 
-  const hadleBlur = async(e) => {
-    try{
-      e.preventDefault();
-      const response = await fetch('/api/post/searchRecommand', {
-          method: 'POST',
-          headers: {
-            'Content-Type' : 'application/json'
-          },
-          body: JSON.stringify({
-            searchText: searchWord
-          })
-      });
+  const handleBlur = async (e) => {
+    e.preventDefault();
+    try {
+        const response = await fetch('/api/post/searchRecommand', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                searchText: searchWord
+            })
+        });
 
-      const data = await response.json();
+        // 서버 응답을 JSON으로 변환
+        const data = await response.json();
 
-      if(data.status === 200){
-        console.log("검색어 추천 성공!: "+data.message);
-      }else{
-        console.log("검색어 추천 실패!");
-      }
-    }catch(err){
-      console.log("검색어 추천 캐치"+err);
+        if (response.status === 200) {
+                    // 데이터가 배열 형태일 때 title 속성을 추출하여 배열에 저장
+        const titles = data.message.map(item => item.title);
+
+        console.log("제목 배열: " + JSON.stringify(titles));
+        } else {
+            console.log("검색어 추천 실패!");
+        }
+    } catch (err) {
+        console.log("검색어 추천 캐치: " + err);
     }
-  }
+}
 
   const handleSubmit = async (e) => {
     try {
@@ -107,7 +111,7 @@ export default function ClientComponent({ initialSession }) {
         <input 
         type="text"
         value={searchWord}
-        onBlur={hadleBlur}
+        onBlur={handleBlur}
         onChange={(e) => setSearchWord(e.target.value)}/>
         <button type="submit">검색하기</button>
       </form>

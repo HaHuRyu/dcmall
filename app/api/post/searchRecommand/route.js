@@ -5,8 +5,7 @@ export async function POST(req){
     try{
         const {searchText} = await req.json();
 
-        const res = searchRecom(searchText);
-        console.log("중간 점검: "+res.message+" // 스테이터스: "+res.status+ " // searchText: "+searchText);
+        const res = await searchRecom(searchText);
 
         return NextResponse.json({ message : res.message}, {status: res.status});
     }catch(err){

@@ -330,15 +330,16 @@ export async function searchRecom(searchText){
     const query = "SELECT * FROM dcmall.productinfo WHERE MATCH(title) AGAINST(? IN NATURAL LANGUAGE MODE);"
 
     try{
-        // 결과를 기다린 후 콘솔에 출력
-        const result = await connection.query(query, [searchText]);
-        console.log("First result: " + JSON.stringify({ title: result[0].title, description: result[0].description }, null, 2));
-
-        return { message: result[0]?.title || "No results", status: 200 };
-    }catch(err){
+        const [result] = await connection.query(query, [searchText]);
+        if (result.length > 0) {
+            return { message: result, status: 200 };
+        } else {
+            return { message: "No results", status: 200 };
+        }
+    } catch(err) {
         console.error("searchRecom 실패: " + err);
         return { message: "searchRecom 실패 " + err, status: 400 };
-    }finally{
+    } finally {
         if(connection) connection.end();
     }
 }
