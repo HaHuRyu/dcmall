@@ -317,7 +317,6 @@ export async function deleteUser(id){
     try{
         await connection.query(deleteUserInfo, [id]);
         await connection.query(deleteUser, [id]);
-
         return {message: "삭제가 완료되었습니다!", status: 200};
     }catch(err){
         return {message: "삭제에 실패하였습니다.", status: 400};
