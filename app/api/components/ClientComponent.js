@@ -5,7 +5,6 @@
 home.js는 서버 컴포넌트로서의 처리 쿠키에서 세션을 가져오는 처리를 맡고 있다.
 */
 import React, { useState, useEffect } from "react";
-import {searchRecommand} from "../../util/searchRecommand";
 
 export default function ClientComponent({ initialSession }) {
   const [loginSession, setLoginSession] = useState(initialSession);
@@ -43,6 +42,31 @@ export default function ClientComponent({ initialSession }) {
   useEffect(() => {
     setLoginSession(initialSession);
   }, [initialSession]);
+
+  const hadleBlur = async(e) => {
+    try{
+      e.preventDefault();
+      const response = await fetch('/api/post/searchRecommand', {
+          method: 'POST',
+          headers: {
+            'Content-Type' : 'application/json'
+          },
+          body: JSON.stringify({
+            searchText: searchWord
+          })
+      });
+
+      const data = await response.json();
+
+      if(data.status === 200){
+        console.log("검색어 추천 성공!: "+data.message);
+      }else{
+        console.log("검색어 추천 실패!");
+      }
+    }catch(err){
+      console.log("검색어 추천 캐치"+err);
+    }
+  }
 
   const handleSubmit = async (e) => {
     try {
@@ -83,6 +107,7 @@ export default function ClientComponent({ initialSession }) {
         <input 
         type="text"
         value={searchWord}
+        onBlur={hadleBlur}
         onChange={(e) => setSearchWord(e.target.value)}/>
         <button type="submit">검색하기</button>
       </form>

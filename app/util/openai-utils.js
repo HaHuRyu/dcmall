@@ -20,19 +20,13 @@ export async function getEmbedding(text) {
   );
 
   const embedding = response.data.data[0].embedding;
+
   // 테이블 이름을 큰따옴표로 묶어 대소문자를 구분
-  const {data, error} = await supabase.rpc('search_items', {
+  const {data, error, status} = await supabase.rpc('search_items', {
     query_embedding: embedding,
     match_threshold: 0.1,
     match_count: 30
   })
-
-  console.log(await supabase.rpc('search_items', {
-    query_embedding: embedding,
-    match_threshold: 0.1,
-    match_count: 30
-  }))
-  
   
   if (error) {
     console.error('Error:', error)
