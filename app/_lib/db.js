@@ -326,14 +326,13 @@ export async function deleteUser(id){
 }
 
 export async function searchRecom(searchText){
-    console.log("searchRecom 실행: "+searchText);
     const connection = await getConnection();
     const query = "SELECT * FROM dcmall.productinfo WHERE MATCH(title) AGAINST(? IN NATURAL LANGUAGE MODE);"
 
     try{
         // 결과를 기다린 후 콘솔에 출력
         const result = await connection.query(query, [searchText]);
-        //console.log("searchRecom 실행! " + searchText + " // " + JSON.stringify(result, null, 2));
+        console.log("First result: " + JSON.stringify({ title: result[0].title, description: result[0].description }, null, 2));
 
         return { message: result[0]?.title || "No results", status: 200 };
     }catch(err){
