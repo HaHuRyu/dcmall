@@ -77,7 +77,6 @@ export async function nickCheck(nick){
     if(nick !== null && !nick.includes(" ") && nick.length <= 20){
         const connection = await getConnection();
         const query = "SELECT COUNT(nickname) AS count From userinfo WHERE nickname = ?";
-0
         try{
             const results = await connection.query(query, [nick]);
 
@@ -324,6 +323,25 @@ export async function deleteUser(id){
         if(connection) connection.end();
     }
 }
+
+export async function searchRecom(searchText){
+    const connection = await getConnection();
+    const query = "SELECT * FROM dcmall.productinfo WHERE MATCH(title) AGAINST(? IN NATURAL LANGUAGE MODE);"
+
+    try{
+        // 결과를 기다린 후 콘솔에 출력
+        const result = await connection.query(query, [searchText]);
+        console.log("First result: " + JSON.stringify({ title: result[0].title, description: result[0].description }, null, 2));
+
+        return { message: result[0]?.title || "No results", status: 200 };
+    }catch(err){
+        console.error("searchRecom 실패: " + err);
+        return { message: "searchRecom 실패 " + err, status: 400 };
+    }finally{
+        if(connection) connection.end();
+    }
+}
+
 
 function idStringCheck(id){
     return /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(id);
