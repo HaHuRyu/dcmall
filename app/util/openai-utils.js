@@ -27,6 +27,8 @@ export async function getEmbedding(text) {
     match_count: 30
   })
 
+  console.log(data)
+
   if (error) {
     console.error('Error:', error)
   } else {
