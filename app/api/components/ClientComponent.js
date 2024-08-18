@@ -24,14 +24,17 @@ export default function ClientComponent({ initialSession }) {
         })
       });
 
-      console.log("test2 " + response.status)
 
       const data = await response.json();
       const recommandList = data.recommendations;
 
+      console.log("test"  + data.aaa);
+
       if(response.status === 200){
         console.log(recommandList.length)
         setResultList(recommandList);
+      }else{
+        alert("오류");
       }
       
     }catch(error){
@@ -99,7 +102,7 @@ export default function ClientComponent({ initialSession }) {
           <form onSubmit={handleSubmit}>
             <button type="submit">로그아웃</button>
           </form>
-          <a href= "../deleteId"><button type="submit">아이디 삭제</button></a>
+          <a href= "../login/deleteId"><button type="submit">아이디 삭제</button></a>
         </div>    
       )}
 
