@@ -263,6 +263,25 @@ export async function findSessionById(id, newSession){
     }
 }
 
+export async function compareSession(id){
+    const connection = await getConnection();
+    const compareQuery = "SELECT sessionId FROM userinfo WHERE num = (SELECT num FROM user WHERE id = ?)";
+
+    try{
+        const [result] = await connection.query(compareQuery, [id]);
+        if(result.length > 0){
+            return {message: result[0].sessionId, status:200};
+        }else{
+            return {message: "null", status:400};
+        }
+    }catch(err){
+        console.error("compareSession error", err);
+        return {message: "compareSession 에러", status: 400};
+    }finally{
+        if(connection) connection.end();
+    }
+}
+
 export async function updateSessionId(id, newSession) {
     const connection = await getConnection();
     const query = "UPDATE userinfo SET sessionId = ? WHERE num = (SELECT num FROM user WHERE id = ?)";
@@ -309,13 +328,16 @@ export async function getPasswordById(id){
     }
 }
 
-export async function deleteUser(id){
+export async function deleteUser(cookieSession){
+    console.log("삭제 시도: "+cookieSession);
     const connection = await getConnection();
-    const deleteUserInfo = "DELETE FROM userinfo WHERE num = (SELECT num FROM user WHERE id = ?)";
-    const deleteUser = "DELETE FROM user WHERE id = ?";
+    const findUserNum = "SELECT num FROM userinfo WHERE sessionId = ?"
+    const deleteUserInfo = "DELETE FROM userinfo WHERE num = ?";
+    const deleteUser = "DELETE FROM user WHERE num = ?";
     try{
-        await connection.query(deleteUserInfo, [id]);
-        await connection.query(deleteUser, [id]);
+        const [userNum] = await connection.query(findUserNum, [cookieSession]);
+        await connection.query(deleteUserInfo, [userNum[0].num]);
+        await connection.query(deleteUser, [userNum[0].num]);
 
         return {message: "삭제가 완료되었습니다!", status: 200};
     }catch(err){

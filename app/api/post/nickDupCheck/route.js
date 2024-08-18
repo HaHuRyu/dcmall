@@ -7,10 +7,10 @@ export async function POST(req) {
     try {
         const result = await nickCheck(usernick);
 
-        return NextResponse.json({ message: result.message }, { status: result.status });
+        return NextResponse.json({ message: result.message, status: result.status });
     } catch (error) {
         console.error("Nick check error:", error);
-        return NextResponse.json({ message: "An error occurred while checking Nick" }, { status: 500 });
+        return NextResponse.json({ message: "An error occurred while checking Nick", status: 500 });
     }
 }
 

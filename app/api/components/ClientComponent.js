@@ -60,7 +60,6 @@ export default function ClientComponent({ initialSession }) {
         const data = await response.json();
 
         if (response.status === 200) {
-                    // 데이터가 배열 형태일 때 title 속성을 추출하여 배열에 저장
         const titles = data.message.map(item => item.title);
 
         console.log("제목 배열: " + JSON.stringify(titles));
@@ -103,7 +102,7 @@ export default function ClientComponent({ initialSession }) {
           <form onSubmit={handleSubmit}>
             <button type="submit">로그아웃</button>
           </form>
-          <a href= "../deleteId"><button type="submit">아이디 삭제</button></a>
+          <a href= "../login/deleteId"><button type="submit">아이디 삭제</button></a>
         </div>    
       )}
 

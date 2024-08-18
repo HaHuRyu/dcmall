@@ -21,8 +21,10 @@ export default function SignIn() {
           password: sanitizedOutputPW
         }),
       });
+      const res = await response.json();
+      console.log("로그인: "+res.message+" // "+res.status)
 
-      if(response.status === 200){
+      if(res.status === 200){
         window.location.href = '/';
       }
     }catch (error) {

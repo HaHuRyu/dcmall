@@ -26,7 +26,7 @@ export default function deleteId() {
 
             const data = await response.json();
 
-            if (response.status === 200 && data.confirm) {
+            if (data.status === 200 && data.confirm) {
                 if (confirm(data.message)) {
                     // 두 번째 요청: 실제 삭제
                     const deleteResponse = await fetch('/api/post/deleteUser', {
