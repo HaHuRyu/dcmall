@@ -18,7 +18,7 @@ export async function POST(req) {
             throw console.error('Http error: '+result.status);
         }
         const response = await result.json();
-
+        
         return NextResponse.json({recommendations: response}, {status: 200});
     } catch (error) {
         console.error("오류 발생:", error);

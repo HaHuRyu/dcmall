@@ -309,7 +309,12 @@ export async function getPasswordById(id){
         if(connection) connection.end();
     }
 }
-
+/**
+ * 
+ * @param {*} id 
+ * 아이디를 삭제하는 함수
+ * @returns 
+ */
 export async function deleteUser(id){
     const connection = await getConnection();
     const deleteUserInfo = "DELETE FROM userinfo WHERE num = (SELECT num FROM user WHERE id = ?)";
@@ -321,6 +326,18 @@ export async function deleteUser(id){
         return {message: "삭제가 완료되었습니다!", status: 200};
     }catch(err){
         return {message: "삭제에 실패하였습니다.", status: 400};
+    }finally{
+        if(connection) connection.end();
+    }
+}
+
+export async function selectUserId(CookieSessionId){
+    const connection = await getConnection();
+    const SelectUserId = "SELECT id FROM userinfo WHERE sessionId = ?"
+    try{
+        await connection.query(SelectUserId, [CookieSessionId]);
+    }catch(err){
+        return {message: "로그인 되지 않았습니다.", status : 200}
     }finally{
         if(connection) connection.end();
     }
