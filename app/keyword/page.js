@@ -1,7 +1,10 @@
 "use client"
 
-export default function KeyWord(){
-   
+import { checkSessionId } from "../util/checkSessionId";
+
+
+export default function KeyWord({ loginSession }){
+
     const handleSubmit = async (event) => {
         event.preventDefault();
     
@@ -27,8 +30,8 @@ export default function KeyWord(){
                       body: searchText
                 });
                 const data = await response.json();
-                
-                if(data.status === 200){
+                console.log("log" + data.check);
+                if(data.check === 200){
                     alert("알림 서비스가 등록 되었습니다.")
                 }else{
                     alert("오류가 발생하였습니다 관리자에게 문의해주세요")
@@ -41,13 +44,28 @@ export default function KeyWord(){
         
     return(
         <div>
-            <form onSubmit={handleSubmit} id="handler">
+            {loginSession == null ? (
+                <p>로그인 후 이용해 주세요</p>
+            ): (
+                <form onSubmit={handleSubmit} id="handler">
                 <input type="text" name="title"/>
                 <br/>
                 <input type="number" name="threshold"/>
                 <br/>
                 <button type="submit">설정</button>
             </form>
+            )}
+            
         </div>
     )
 }
+
+export async function generateStaticParams() {
+    return [{}];
+  }
+  
+  export async function generateMetadata() {
+    return {
+      title: 'Keyword Page',
+    };
+  }

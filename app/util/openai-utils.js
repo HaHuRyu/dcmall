@@ -22,7 +22,7 @@ export async function getEmbedding(text, threshold) {
   const embedding = response.data.data[0].embedding;
 
   // 테이블 이름을 큰따옴표로 묶어 대소문자를 구분
-  let data, error;
+  let data, error, status;
   console.log("dsa" + threshold)
   if(threshold == "x") {
       const result = await supabase.rpc('search_items', {
@@ -36,17 +36,23 @@ export async function getEmbedding(text, threshold) {
       const result = await supabase
       .from("notification")
       .insert({ num: 4, embedding: embedding, threshold: threshold });
-      
       data = result.data;
       error = result.error;
+      status = result.status
+      
   }
+
+  console.log("error " + error);
+  console.log("data " + data);
   /*
    embedding 형식 문제 해겨해야됨.
   */
   if (error) {
-    console.error('Error:')
+    console.error('Error: ' + JSON.stringify(error))
+  } else if(status == 201){
+    return NextResponse.json({check: 200})
   } else {
-    return NextResponse.json({recommendations: data}, {aaa: 200})
+    return NextResponse.json({recommendations: data})
   }
   return NextResponse.json({recommendations: error}, {status: 400});
 }

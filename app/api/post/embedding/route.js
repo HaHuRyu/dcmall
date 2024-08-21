@@ -1,16 +1,16 @@
+import { NextResponse } from "next/server";
 import {getEmbedding} from "../../../util/openai-utils"
 
 export async function POST(req){
-    // const searchText = await req.json();
-    const { searchText } = await req.json();
-    console.log(searchText);
+    const obj = await req.json();
     let emtext;
-    // if("Threshold" in searchText ){
-    //     const {title, threshold} = searchText;
-    //     emtext = getEmbedding(title, threshold);
-    // } else {
-       emtext = getEmbedding(searchText, "x");
-    // }
+    if("threshold" in obj ){
+        const {title, threshold} = obj;
+        emtext = getEmbedding(title, threshold);
+    } else {
+        const {searchText} = obj;
+        emtext = getEmbedding(searchText, "x");
+    }
     console.log("testdsadsa" + emtext)
     return emtext;
 
