@@ -5,11 +5,35 @@
 home.js는 서버 컴포넌트로서의 처리 쿠키에서 세션을 가져오는 처리를 맡고 있다.
 */
 import React, { useState, useEffect } from "react";
+import { InfScroll, InfScrollNoSearch, InfScrollProvider} from '../../util/infiniteScroll'
+import { allowedNodeEnvironmentFlags } from "process";
 
 export default function ClientComponent({ initialSession }) {
   const [loginSession, setLoginSession] = useState(initialSession);
   const [searchWord, setSearchWord] = useState('');
   const [resultList, setResultList] = useState([]);
+  const [allProductList, setAllProductList] = useState([]);
+
+  const fetchAllProducts = async (e) => {
+    try{
+      const response = await fetch('/api/post/getAllProduct', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}), // 빈 객체를 전송합니다.
+      });
+
+      const data = await response.json();
+      const message = data.message;
+
+      if(response.status === 200){
+        setAllProductList(message);
+      }
+    }catch(err){
+      console.error("fetchAllProducts Error: "+err);
+    }
+  }
 
   const searchSubmit = async (e) => {
     e.preventDefault(); //아랫코드가 다 실행되고 나서 새로고침되는 것을 막는다
@@ -24,13 +48,9 @@ export default function ClientComponent({ initialSession }) {
         })
       });
 
-      console.log("test2 " + response.status)
-
       const data = await response.json();
       const recommandList = data.recommendations;
-
       if(response.status === 200){
-        console.log(recommandList.length)
         setResultList(recommandList);
       }
       
@@ -41,15 +61,22 @@ export default function ClientComponent({ initialSession }) {
 
   useEffect(() => {
     setLoginSession(initialSession);
+    fetchAllProducts();
   }, [initialSession]);
 
-  const handleBlur = async (e) => {
+  useEffect(() => {
+    if (resultList.length === 0) {
+      fetchAllProducts();
+    }
+  }, [resultList]);
+
+  const handleBlur = async (e) => { //자동완성 같은 기능
     e.preventDefault();
     try {
         const response = await fetch('/api/post/searchRecommand', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'applicatioㅉn/json'
             },
             body: JSON.stringify({
                 searchText: searchWord
@@ -91,6 +118,7 @@ export default function ClientComponent({ initialSession }) {
       console.error("로그아웃 오류!", error);
     }
   };
+  
   return (
     <div>
       {loginSession == null ? (
@@ -105,7 +133,7 @@ export default function ClientComponent({ initialSession }) {
           <a href= "../login/deleteId"><button type="submit">아이디 삭제</button></a>
         </div>    
       )}
-
+      
       <form onSubmit={searchSubmit}>
         <input 
         type="text"
@@ -115,7 +143,7 @@ export default function ClientComponent({ initialSession }) {
         <button type="submit">검색하기</button>
       </form>
 
-      {resultList.length > 0 ? (
+      {/* {resultList.length > 0 ? (
         <ul>
           {resultList.map((result, index) => (
             <li key={index}>
@@ -125,7 +153,17 @@ export default function ClientComponent({ initialSession }) {
         </ul>
       ) : (
         <p>검색 결과가 없습니다.</p>
+      )} */}
+      {resultList.length > 0 ? (
+        <InfScrollProvider>
+            <InfScroll searchResults={resultList} />
+          </InfScrollProvider>
+        ) : (
+          <InfScrollProvider>
+            <InfScrollNoSearch searchResults={allProductList}/>
+          </InfScrollProvider>
       )}
+
     </div>
   );
 }

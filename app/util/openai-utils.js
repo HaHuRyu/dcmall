@@ -31,9 +31,9 @@ export async function getEmbedding(text) {
   if (error) {
     console.error('Error:', error)
   } else {
-    return NextResponse.json({recommendations: data, status: 200})
+    return NextResponse.json({recommendations: data}, {status: 200})
   }
-  return NextResponse.json({recommendations: error, status: 400});
+  return NextResponse.json({recommendations: error}, {status: 400});
 }
 /* DB 내에서 자체적으로 계산이 진행되기 때문에 주석처리
 export function cosineSimilarity(vecA, vecB) {  //코사인 유사도는 공식으로 바꿔봐야 크게 의미가 없다

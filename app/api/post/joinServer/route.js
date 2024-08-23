@@ -23,10 +23,10 @@ export async function POST(req){
         //DB에 저장하는 부분을 집어 넣자
         setUser(userId, hashPw, Email, nickName);
 
-        return NextResponse.json({message : "회원가입 성공!", status : 200});
+        return NextResponse.json({message : "회원가입 성공!"}, {status : 200});
     }
     else{
-        return NextResponse.json({message : "ID와 비밀번호를 다시 확인해주세요.", status : 400});
+        return NextResponse.json({message : "ID와 비밀번호를 다시 확인해주세요."}, {status : 400});
     }
 }
 

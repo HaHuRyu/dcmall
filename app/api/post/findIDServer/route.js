@@ -9,9 +9,9 @@ export async function POST(req) {
 
         const result = await findID(email);
         
-        return NextResponse.json({ message: result.message, status: result.status });
+        return NextResponse.json({ message: result.message}, {status: result.status });
     } catch (error) {
         console.error("findID error:", error);
-        return NextResponse.json({ message: "An error occurred while finding ID", status: 500 });
+        return NextResponse.json({ message: "An error occurred while finding ID"}, {status: 500 });
     }
 }

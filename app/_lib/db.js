@@ -366,6 +366,30 @@ export async function searchRecom(searchText){
     }
 }
 
+export async function selectAllProduct(){
+    const connection = await getConnection();
+    const query = "SELECT title,cost,url FROM dcmall.productinfo";
+
+    try{
+        const [result] = await connection.query(query);
+        
+        if(result.length > 0){
+            // const titles = result.map(result => result.title);
+            //  // JSON 객체로 변환
+            //  const response = { title: titles };
+
+            return {message: result, status: 200 };
+        }else{
+            return {message: "selectAllProduct Failed", status: 400};
+        }
+    }catch(err){
+        console.error("selectAllProduct 오류: "+err);
+        return {message: "selectAllProduct Error", status:400};
+    } finally{
+        if(connection) connection.end();
+    }
+}
+
 
 function idStringCheck(id){
     return /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(id);

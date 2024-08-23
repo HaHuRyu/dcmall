@@ -7,10 +7,10 @@ export async function POST(req) {
     try {
         const result = await idCheck(inputID);
 
-        return NextResponse.json({ message: result.message, status: result.status });
+        return NextResponse.json({ message: result.message}, {status: result.status });
     } catch (error) {
         console.error("ID check error:", error);
-        return NextResponse.json({ message: "An error occurred while checking ID", status: 500 });
+        return NextResponse.json({ message: "An error occurred while checking ID"}, {status: 500 });
     }
 }
 

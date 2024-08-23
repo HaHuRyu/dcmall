@@ -22,9 +22,9 @@ export default function SignIn() {
         }),
       });
       const res = await response.json();
-      console.log("로그인: "+res.message+" // "+res.status)
-
-      if(res.status === 200){
+      alert(res.message);
+      
+      if(response.status === 200){
         window.location.href = '/';
       }
     }catch (error) {

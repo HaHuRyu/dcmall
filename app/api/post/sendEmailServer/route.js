@@ -17,9 +17,9 @@ export async function POST(req) {
             console.log('adsadsa'+ answer.message)
             
         }
-        return NextResponse.json({ message: answer.message, status: answer.status });
+        return NextResponse.json({ message: answer.message}, {status: answer.status });
     } catch (error) {
         console.error("writeEmailToken error:", error);
-        return NextResponse.json({ message: "An error occurred findPw", status: 500 });
+        return NextResponse.json({ message: "An error occurred findPw"}, {status: 500 });
     }
 }
