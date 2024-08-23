@@ -352,11 +352,13 @@ export async function searchRecom(searchText){
 
 export async function selectUserId(CookieSessionId){
     const connection = await getConnection();
-    const SelectUserId = "SELECT id FROM userinfo WHERE sessionId = ?"
+    const SelectUserId = "SELECT num FROM userinfo WHERE sessionId = ?"
     try{
-        await connection.query(SelectUserId, [CookieSessionId]);
+        const [rows] = await connection.query(SelectUserId, [CookieSessionId]);
+        console.log(rows);
+        return rows.length > 0;
     }catch(err){
-        return {message: "로그인 되지 않았습니다.", status : 200}
+        return false;
     }finally{
         if(connection) connection.end();
     }

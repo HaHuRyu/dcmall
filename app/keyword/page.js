@@ -1,9 +1,9 @@
 "use client"
 
-import { checkSessionId } from "../util/checkSessionId";
 
 
-export default function KeyWord({ loginSession }){
+export default function KeyWord(){
+
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -44,28 +44,15 @@ export default function KeyWord({ loginSession }){
         
     return(
         <div>
-            {loginSession == null ? (
-                <p>로그인 후 이용해 주세요</p>
-            ): (
-                <form onSubmit={handleSubmit} id="handler">
+            <form onSubmit={handleSubmit} id="handler">
                 <input type="text" name="title"/>
                 <br/>
                 <input type="number" name="threshold"/>
                 <br/>
                 <button type="submit">설정</button>
             </form>
-            )}
             
         </div>
     )
 }
 
-export async function generateStaticParams() {
-    return [{}];
-  }
-  
-  export async function generateMetadata() {
-    return {
-      title: 'Keyword Page',
-    };
-  }

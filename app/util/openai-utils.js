@@ -33,38 +33,30 @@ export async function getEmbedding(text, threshold) {
       data = result.data;
       error = result.error;
   } else {
-      const result = await supabase
-      .from("notification")
-      .insert({ num: 4, embedding: embedding, threshold: threshold });
-      data = result.data;
-      error = result.error;
-      status = result.status
+    const result = await supabase
+    .from("notification")
+    .upsert({ num: 4, embedding: embedding, threshold: threshold },
+            { onConflict: ['num'] }
+    )
+    .select();
+
+    data = result.data;
+    error = result.error;
+    status = result.status
       
   }
 
-  console.log("error " + error);
-  console.log("data " + data);
-  /*
-   embedding 형식 문제 해겨해야됨.
-  */
+
   if (error) {
     console.error('Error: ' + JSON.stringify(error))
-  } else if(status == 201){
+  } else if(status == 200){
     return NextResponse.json({check: 200})
   } else {
     return NextResponse.json({recommendations: data})
   }
   return NextResponse.json({recommendations: error}, {status: 400});
 }
-/* DB 내에서 자체적으로 계산이 진행되기 때문에 주석처리
-export function cosineSimilarity(vecA, vecB) {  //코사인 유사도는 공식으로 바꿔봐야 크게 의미가 없다
-  const dotProduct = vecA.reduce((sum, a, idx) => sum + a * vecB[idx], 0);
-  const normA = Math.sqrt(vecA.reduce((sum, a) => sum + a * a, 0));
-  const normB = Math.sqrt(vecB.reduce((sum, b) => sum + b * b, 0));
 
-  return dotProduct / (normA * normB);
-}
-*/
 
 
 export default { getEmbedding };
