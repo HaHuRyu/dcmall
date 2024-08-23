@@ -13,6 +13,7 @@ export default function ClientComponent({ initialSession }) {
   const [searchWord, setSearchWord] = useState('');
   const [resultList, setResultList] = useState([]);
   const [allProductList, setAllProductList] = useState([]);
+  const [renderTrigger, setRenderTrigger] = useState(false);
 
   const fetchAllProducts = async (e) => {
     try{
@@ -61,12 +62,18 @@ export default function ClientComponent({ initialSession }) {
 
   useEffect(() => {
     setLoginSession(initialSession);
-    fetchAllProducts();
+    fetchAllProducts().then(() => {
+      // 데이터가 성공적으로 로드된 후 상태를 업데이트하여 강제로 렌더링을 유도
+      setRenderTrigger(true);
+  });
   }, [initialSession]);
 
   useEffect(() => {
     if (resultList.length === 0) {
-      fetchAllProducts();
+      fetchAllProducts().then(() => {
+        // 데이터가 성공적으로 로드된 후 상태를 업데이트하여 강제로 렌더링을 유도
+        setRenderTrigger(true);
+    });
     }
   }, [resultList]);
 
@@ -154,15 +161,17 @@ export default function ClientComponent({ initialSession }) {
       ) : (
         <p>검색 결과가 없습니다.</p>
       )} */}
-      {resultList.length > 0 ? (
-        <InfScrollProvider>
-            <InfScroll searchResults={resultList} />
-          </InfScrollProvider>
-        ) : (
-          <InfScrollProvider>
-            <InfScrollNoSearch searchResults={allProductList}/>
-          </InfScrollProvider>
-      )}
+      {renderTrigger && (
+            resultList.length > 0 ? (
+                <InfScrollProvider>
+                    <InfScroll searchResults={resultList} />
+                </InfScrollProvider>
+            ) : (
+                <InfScrollProvider>
+                    <InfScrollNoSearch searchResults={allProductList} />
+                </InfScrollProvider>
+            )
+        )}
 
     </div>
   );
