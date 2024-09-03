@@ -80,16 +80,29 @@ export default function ClientComponent({ initialSession }) {
   }, [resultList]);
 
   useEffect(() => {
-    if(session && session.provider === 'google'){
-      console.log("ㅆㅆㅆ씨ㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣ빨");
-      googleSignIn(session); 
-      debugger;
-    }
-
-    if(session){
-      //세션 등록 드가자~
+    if (session) {
+      if (session.provider === 'google') {
+        googleSignIn(session); 
+      }
+  
+      console.log("확인: " + JSON.stringify(session));
+      sessionRegist(session);
     }
   }, [session]);
+  
+
+  const sessionRegist = async (session) =>{
+    await fetch('/api/post/sessionRegist', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: session?.user?.email,
+        provider: session?.provider,
+      })
+    })
+  }
 
   const googleSignIn = async (session) => {
     try {
