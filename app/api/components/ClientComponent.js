@@ -9,8 +9,7 @@ import { InfScroll, InfScrollNoSearch, InfScrollProvider} from '../../util/infin
 import{ useSession, signIn, signOut} from 'next-auth/react';
 
 
-export default function ClientComponent({ initialSession }) {
-  const [loginSession, setLoginSession] = useState(initialSession);
+export default function ClientComponent() {
   const [searchWord, setSearchWord] = useState('');
   const [resultList, setResultList] = useState([]);
   const [allProductList, setAllProductList] = useState([]);
@@ -61,14 +60,6 @@ export default function ClientComponent({ initialSession }) {
       console.log("search fetch Error: "+error);
     }
   };
-
-  useEffect(() => {
-    setLoginSession(initialSession);
-    fetchAllProducts().then(() => {
-      // 데이터가 성공적으로 로드된 후 상태를 업데이트하여 강제로 렌더링을 유도
-      setRenderTrigger(true);
-  });
-  }, [initialSession]);
 
   useEffect(() => {
     if (resultList.length === 0) {
@@ -166,6 +157,7 @@ export default function ClientComponent({ initialSession }) {
 
   return (
     <div>
+      <p>Dcmall</p>
       {!session ? ( //signIn안에 'google or credentials'로 지정해주면 문자열+Provider 방식의 로그인을 한다는 의미 문자열로 커스텀 구글을 나눈다
         <>
           <button onClick={() => signIn('google', {redirect: false})}>구글 로그인</button>
