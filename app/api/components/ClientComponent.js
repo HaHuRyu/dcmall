@@ -8,14 +8,15 @@ import React, { useState, useEffect } from "react";
 import { InfScroll, InfScrollNoSearch, InfScrollProvider} from '../../util/infiniteScroll'
 import{ useSession, signIn, signOut} from 'next-auth/react';
 
+
 export default function ClientComponent({ initialSession }) {
   const [loginSession, setLoginSession] = useState(initialSession);
   const [searchWord, setSearchWord] = useState('');
   const [resultList, setResultList] = useState([]);
   const [allProductList, setAllProductList] = useState([]);
   const [renderTrigger, setRenderTrigger] = useState(false);
-  const {data:session} = useSession();
-
+  const { data: session } = useSession();
+ 
   const fetchAllProducts = async (e) => {
     try{
       const response = await fetch('/api/post/getAllProduct', {
@@ -79,63 +80,48 @@ export default function ClientComponent({ initialSession }) {
   }, [resultList]);
 
   useEffect(() => {
-    if (!session || !session.user || !session.user.email) return;
+    if(session && session.provider === 'google'){
+      console.log("ㅆㅆㅆ씨ㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣㅣ빨");
+      googleSignIn(session); 
+      debugger;
+    }
 
-    const createSession = async () => {
-      try {
-        const result = await fetch('api/createSession', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: session.user.email, // JSON 형식으로 email 전송
-          }),
-        });
-
-        if (result.status === 200) {
-          // Ensure that we only perform redirection once
-          if (window.location.pathname !== '/') {
-            window.location.href = '/';
-          }
-        }
-        return;
-      } catch (error) {
-        console.error('Failed to create session:', error);
-      }
-    };
-
-    const googleSignUp = async () => {
-      try {
-        const response = await fetch('api/post/joinServer/google', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: session.user.email, // JSON 형식으로 email 전송
-          }),
-        });
-
-        const data = await response.json();
-        console.log("구글 로그인 첫 번째 관문 ", response.status);
-
-        if (response.status === 200) {
-          // 유저의 닉네임을 받아오고 세션 생성 후 리다이렉트
-          await createSession();
-        } else if (response.status === 201) {
-          sessionStorage.setItem('userEmail', session.user.email);
-          window.location.href = data.url;
-          // 세션 생성 후 리다이렉트
-          await createSession();
-        }
-      } catch (error) {
-        console.error('Google Sign Up failed:', error);
-      }
-    };
-
-    googleSignUp();
+    if(session){
+      //세션 등록 드가자~
+    }
   }, [session]);
+
+  const googleSignIn = async (session) => {
+    try {
+      const response = await fetch('/api/post/joinServer/google', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: session?.user?.email, // 최신 세션 값을 사용합니다.
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.status === 200) {
+        console.log('구글 로그인 성공');
+      } else if (response.status === 201) {
+        sessionStorage.setItem('userEmail', session?.user?.email || '');
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.log("Google SignIn Error: " + error);
+    }
+  };
+ 
+  const handleLogOut = async () => {
+    await signOut({ redirect: false });
+    sessionStorage.clear(); // 세션 스토리지를 명시적으로 클리어
+    await new Promise(resolve => setTimeout(resolve, 500)); // 0.5초 정도 기다리기
+    window.location.reload();
+  };
 
   const handleBlur = async (e) => { //자동완성 같은 기능
     e.preventDefault();
@@ -165,44 +151,28 @@ export default function ClientComponent({ initialSession }) {
     }
 }
 
-  const handleSubmit = async (e) => {
-    try {
-      e.preventDefault();
-      const response = await fetch('/api/post/logOut', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userSession: loginSession,
-        }),
-      });
-
-      if (response.status === 200) {
-        window.location.href = '/';
-      }
-    } catch (error) {
-      console.error("로그아웃 오류!", error);
-    }
-  };
   return (
     <div>
-      {loginSession == null ? (
-        <a href='/login/signIn'>
-          <button>로그인</button>
-        </a>
-      ) : (
-        <div>
-          <form onSubmit={handleSubmit}>
-            <button type="submit">로그아웃</button>
+      {!session ? ( //signIn안에 'google or credentials'로 지정해주면 문자열+Provider 방식의 로그인을 한다는 의미 문자열로 커스텀 구글을 나눈다
+        <>
+          <button onClick={() => signIn('google', {redirect: false})}>구글 로그인</button>
+          <form onSubmit={async (e) => {
+            e.preventDefault();
+            const email = e.target.email.value;
+            const password = e.target.password.value;
+            const result = await signIn('credentials', { redirect: false, email, password }); //Credentials(커스텀 로그인)에 로그인을 요청 리다이렉트 금지, email, password를 authorize에 보낸다.
+            if (result?.error) {
+              console.log("커스텀 로그인 실패:", result.error);
+            }
+          }}>
+            <input name="email" type="text" placeholder="Email" />
+            <input name="password" type="password" placeholder="Password" />
+            <button type="submit">커스텀 로그인</button>
           </form>
-          <a href= "../login/deleteId"><button type="submit">아이디 삭제</button></a>
-        </div>    
+        </>
+      ) : (
+        <button onClick={() => handleLogOut()}>로그아웃</button>
       )}
-
-      {session
-      ? <button onClick={() => signOut()}>sign Out</button>
-      : <button onClick={() => signIn()}>sign In</button>}
       
       {session ? (
         <div>

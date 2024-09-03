@@ -10,7 +10,6 @@ import {setUserGoogleLogin} from "../../../../../_lib/db"
 */
 export async function POST(req){
     const {usernick, email} = await req.json();
-    console.log("구글 로그인 최종장: "+usernick+" // "+email);
 
     const result = await setUserGoogleLogin(email, usernick);
     if(result.status === 200){
