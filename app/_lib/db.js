@@ -355,8 +355,7 @@ export async function selectUserId(CookieSessionId){
     const SelectUserId = "SELECT num FROM userinfo WHERE sessionId = ?"
     try{
         const [rows] = await connection.query(SelectUserId, [CookieSessionId]);
-        console.log(rows);
-        return rows.length > 0;
+        return rows
     }catch(err){
         return false;
     }finally{

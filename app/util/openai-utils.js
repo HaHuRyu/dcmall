@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 /*
 240625 임베딩까지도 잘 계산하는데 DB 저장이 제대로 이뤄지지 않는 경우
 */
-export async function getEmbedding(text, threshold) {
+export async function getEmbedding(text, threshold, num) {
   const response = await axios.post(
     'https://api.openai.com/v1/embeddings',
     {
@@ -23,7 +23,6 @@ export async function getEmbedding(text, threshold) {
 
   // 테이블 이름을 큰따옴표로 묶어 대소문자를 구분
   let data, error, status;
-  console.log("dsa" + threshold)
   if(threshold == "x") {
       const result = await supabase.rpc('search_items', {
         query_embedding: embedding,
@@ -35,7 +34,7 @@ export async function getEmbedding(text, threshold) {
   } else {
     const result = await supabase
     .from("notification")
-    .upsert({ num: 4, embedding: embedding, threshold: threshold },
+    .upsert({ num: num, embedding: embedding, threshold: threshold, title: text },
             { onConflict: ['num'] }
     )
     .select();

@@ -17,10 +17,12 @@ export async function POST(req){
             loginSession = valueObj.sessionID;
         }
 
-        const answer = await selectUserId(loginSession);
-        if(answer){
+        const rows = await selectUserId(loginSession);
+        
+        if(rows.length > 0){
+            const userNum = rows[0].num;
             const {title, threshold} = obj;
-            emtext = getEmbedding(title, threshold);
+            emtext = getEmbedding(title, threshold, userNum);
         } else {
             const response = NextResponse.json({recommendations: "세션 변조 발생", check: 500});
             response.cookies.set('next-session', '',{
