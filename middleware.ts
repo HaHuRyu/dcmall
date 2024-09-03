@@ -12,7 +12,7 @@ export const runtime = 'nodejs'
 export async function middleware(request: NextRequest){
 
     const response = NextResponse.next();
-    const session = request.cookies.get('next-session');
+    const session = request.cookies.get('next-auth.session-token');
     
     if (!session && request.nextUrl.pathname.startsWith('/login')) {
         return response;
@@ -22,12 +22,12 @@ export async function middleware(request: NextRequest){
 
     
     if(session){
-        if(request.nextUrl.pathname.startsWith('/login')){
-            return NextResponse.redirect(new URL('/', request.url));
-        } 
+        // if(request.nextUrl.pathname.startsWith('/login')){
+        //     return NextResponse.redirect(new URL('/', request.url));
+        // } 
         
         if(request.nextUrl.pathname.startsWith('/keyword')){
-            const obj = JSON.parse(session.value);
+            const obj = session.value;
             if(obj){
                 return response
             } else {

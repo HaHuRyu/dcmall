@@ -1,5 +1,5 @@
-import Home from './api/components/home';
+import ClientComponent from './api/components/ClientComponent';
 
 export default function Page() {
-  return <Home />;
+  return <ClientComponent />;
 }

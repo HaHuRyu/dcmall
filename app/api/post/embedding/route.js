@@ -9,21 +9,16 @@ export async function POST(req){
 
     if("threshold" in obj ){
         const cookieStore = cookies();
-        const nextSession = cookieStore.get('next-session');
-        let loginSession = null;
+        const nextSession = cookieStore.get('next-auth.session-token');
+        console.log("확이닝니이닝닝니닌: "+nextSession.value);
 
-        if (nextSession != null) {
-            const valueObj = JSON.parse(nextSession.value);
-            loginSession = valueObj.sessionID;
-        }
-
-        const answer = await selectUserId(loginSession);
+        const answer = await selectUserId(nextSession.value);
         if(answer){
             const {title, threshold} = obj;
             emtext = getEmbedding(title, threshold);
         } else {
             const response = NextResponse.json({recommendations: "세션 변조 발생", check: 500});
-            response.cookies.set('next-session', '',{
+            response.cookies.set('next-auth.session-token', '',{
                 expires: new Date(0),
                 path: '/'
             });

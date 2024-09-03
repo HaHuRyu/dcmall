@@ -22,6 +22,6 @@ export async function POST(req) {
         return NextResponse.json({recommendations: response}, {status: 200});
     } catch (error) {
         console.error("오류 발생:", error);
-        return NextResponse.json({ error: "서버 오류 발생" }, { status: 500 });
+        return NextResponse.json({ error: "서버 오류 발생"} , {status: 500 });
     }
 }

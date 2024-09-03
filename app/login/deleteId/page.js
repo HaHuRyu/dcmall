@@ -25,7 +25,7 @@ export default function deleteId() {
             });
 
             const data = await response.json();
-
+            console.log("아이디 삭제: "+data.message+" // "+response.status);
             if (response.status === 200 && data.confirm) {
                 if (confirm(data.message)) {
                     // 두 번째 요청: 실제 삭제
