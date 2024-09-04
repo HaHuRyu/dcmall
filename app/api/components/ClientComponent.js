@@ -14,6 +14,85 @@ export default function ClientComponent() {
   const [resultList, setResultList] = useState([]);
   const [allProductList, setAllProductList] = useState([]);
   const [renderTrigger, setRenderTrigger] = useState(false);
+  const { data: session } = useSession(); // status 추가
+
+  useEffect(() => {
+    // 비동기 작업을 처리하는 함수
+    const performAsyncActions = async () => {
+      try {
+        if(session){
+            if (session.provider === 'google') {
+              await asyncGoogleSignIn(session);
+            }
+  
+            console.log("확인: " + JSON.stringify(session));
+
+            await asyncSessionRegist(session);
+        }
+      } catch (error) {
+        console.error("Error in performAsyncActions: ", error);
+      }
+    };
+
+    // 비동기 함수 정의
+    const asyncGoogleSignIn = async (session) => {
+      try {
+        await googleSignIn(session);
+      } catch (err) {
+        console.log("asyncGoogleSignIn Error: " + err);
+      }
+    };
+
+    const asyncSessionRegist = async (session) => {
+      try {
+        await sessionRegist(session);
+      } catch (err) {
+        console.log("asyncSessionRegist Error: " + err);
+      }
+    };
+
+    // 비동기 함수 호출
+    performAsyncActions();
+
+  }, [session]); 
+
+  const sessionRegist = async (session) =>{
+    await fetch('/api/post/sessionRegist', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: session?.user?.email,
+        provider: session?.provider,
+      })
+    })
+  }
+
+  const googleSignIn = async (session) => {
+    try {
+      const response = await fetch('/api/post/joinServer/google', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: session?.user?.email, // 최신 세션 값을 사용합니다.
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.status === 200) {
+        console.log('구글 로그인 성공');
+      } else if (response.status === 201) {
+        sessionStorage.setItem('userEmail', session?.user?.email || '');
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.log("Google SignIn Error: " + error);
+    }
+  };
  
   const fetchAllProducts = async (e) => {
     try{

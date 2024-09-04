@@ -3,25 +3,19 @@ import React, { useEffect } from 'react';
 import{ useSession, signIn, signOut} from 'next-auth/react';
 
 export default function SignIn() {
-  const { data: session } = useSession(); // status 추가
+  const { data: session } = useSession({}); // status 추가
 
   useEffect(() => {
     // 비동기 작업을 처리하는 함수
     const performAsyncActions = async () => {
       try {
         if(session){
-          console.log("유즈이펙트: " + JSON.stringify(session));
-          debugger;
-  
-            console.log("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG: " + JSON.stringify(session));
-            debugger;
-            
             if (session.provider === 'google') {
               await asyncGoogleSignIn(session);
             }
   
             console.log("확인: " + JSON.stringify(session));
-            debugger;
+
             await asyncSessionRegist(session);
         }
       } catch (error) {

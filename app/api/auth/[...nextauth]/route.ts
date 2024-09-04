@@ -22,11 +22,7 @@ const handler = NextAuth({
           const user = query[0];
           const isValidPassword = password_check(user.password, credentials.password);
           if (isValidPassword) {
-            return {
-              ...user, // 기존 user 객체의 내용을 복사
-              email: credentials.email, // 이메일 추가
-              name: user.name // 닉네임 추가 (이미 user 객체에 포함되어 있을 수도 있음) user에 일단 네임이 없음 보류
-            };
+            return user;
           } else {
             return null;
           }
@@ -38,32 +34,39 @@ const handler = NextAuth({
   ],
 
   callbacks: {
-    async jwt({ token, account }) {
-      if (account) {
-        token.provider = account.provider;
-        token.accessToken
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      session.provider = token.provider;  //내가 임의적으로 새로 추가한거라 없다고 밑줄 그어질 건데 무시하셈 ㅇㅇ 따로 선언해야 한다는 이야기도 있고
-      session.user.email = token.email || session.user.email;
-      session.user.name = token.name || session.user.name;
-      return session;
-    },
+    // async jwt({ token, account }) {
+    //   if (account) {
+    //     token.provider = account.provider;
+    //   }
+    //   return token;
+    // },
+    async session({ session, token}) {
+      console.log("옘병 났다: "+JSON.stringify(session)+"\n"+JSON.stringify(token));
+      if (token.provider === 'google') {
+        session.provider = token.provider;
+        session.user.email = token.email;
+        session.user.name = token.name;
+      } 
+        
+        return session;
+    }
+  },
+
+  pages: {
+    signIn: '/login/signin', // 사용자 정의 로그인 페이지
+    // 다른 페이지 설정
   },
   
   session: {
-    strategy: "jwt",
     maxAge: 1 * 24 * 60 * 60,
   },
-
+  //아무튼 세션 바뀌는 건 이새끼가 원인
   cookies: {
     sessionToken: {
       name: `next-auth.session-token`,
       options: {
         httpOnly: true,
-        sameSite: 'lax',
+        sameSite: 'strict',
         path: '/', // 쿠키가 전체 사이트에서 유효하도록 설정
       },
     },

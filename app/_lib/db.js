@@ -509,6 +509,7 @@ export async function selectUserId(CookieSessionId){
     }
 }
 
+
 function idStringCheck(id){
     return /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(id);
 }
