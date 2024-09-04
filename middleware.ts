@@ -22,9 +22,10 @@ export async function middleware(request: NextRequest){
 
     
     if(session){
-        // if(request.nextUrl.pathname.startsWith('/login')){
-        //     return NextResponse.redirect(new URL('/', request.url));
-        // } 
+        
+        if(request.nextUrl.pathname.startsWith('/login')){
+            return NextResponse.redirect(new URL('/', request.url));
+        } 
         
         if(request.nextUrl.pathname.startsWith('/keyword')){
             const obj = session.value;

@@ -11,17 +11,14 @@ export default function SignIn() {
       try {
         if(session){
           console.log("유즈이펙트: " + JSON.stringify(session));
-          debugger;
   
             console.log("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG: " + JSON.stringify(session));
-            debugger;
             
             if (session.provider === 'google') {
               await asyncGoogleSignIn(session);
             }
   
             console.log("확인: " + JSON.stringify(session));
-            debugger;
             await asyncSessionRegist(session);
         }
       } catch (error) {

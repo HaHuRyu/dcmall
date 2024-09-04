@@ -49,6 +49,8 @@ const handler = NextAuth({
       session.provider = token.provider;  //내가 임의적으로 새로 추가한거라 없다고 밑줄 그어질 건데 무시하셈 ㅇㅇ 따로 선언해야 한다는 이야기도 있고
       session.user.email = token.email || session.user.email;
       session.user.name = token.name || session.user.name;
+      
+
       return session;
     },
   },
@@ -63,7 +65,8 @@ const handler = NextAuth({
       name: `next-auth.session-token`,
       options: {
         httpOnly: true,
-        sameSite: 'lax',
+        sameSite: 'none',
+        secure: true,
         path: '/', // 쿠키가 전체 사이트에서 유효하도록 설정
       },
     },
@@ -72,3 +75,4 @@ const handler = NextAuth({
 });
 
 export { handler as GET, handler as POST };
+
