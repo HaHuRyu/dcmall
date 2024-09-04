@@ -524,3 +524,21 @@ function generateRandomString(length) {
     }
     return result;
 }
+
+export async function updateSessionIdEmail(session) {
+    const connection = await getConnection();
+    const query = "UPDATE userinfo SET sessionId = ? WHERE email = ?";
+    const values = [session.provider ,session.user.email]
+    console.log("check : " + session.provider + " "+ session.user.email)
+
+    try {
+        await connection.query(query, values);
+
+        return {message: "Success!", status: 200};
+    } catch (error) {
+        console.error("saveSessionId error: ", error);
+        return { message: "saveSessionId failed", status: 400 };
+    } finally {
+        if (connection) connection.end();
+    }
+}
