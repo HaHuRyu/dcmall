@@ -10,7 +10,6 @@ export async function POST(req){
     if("threshold" in obj ){
         const cookieStore = cookies();
         const nextSession = cookieStore.get('next-auth.session-token');
-        console.log("확이닝니이닝닝니닌: "+nextSession.value);
 
         const answer = await selectUserId(nextSession.value);
         if(answer){

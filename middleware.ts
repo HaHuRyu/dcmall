@@ -10,9 +10,8 @@ export const runtime = 'nodejs'
     미들웨어의 주요 목적은 요청을 가로채고, 필요한 경우 수정하거나 리디렉션하는 것
  */
 export async function middleware(request: NextRequest){
-
     const response = NextResponse.next();
-    const session = request.cookies.get('next-auth.session-token');
+    const session = request.cookies.get('dcmall-session');
     
     if (!session && request.nextUrl.pathname.startsWith('/login')) {
         return response;
@@ -25,7 +24,7 @@ export async function middleware(request: NextRequest){
         
         if(request.nextUrl.pathname.startsWith('/login')){
             return NextResponse.redirect(new URL('/', request.url));
-        } 
+        }
         
         if(request.nextUrl.pathname.startsWith('/keyword')){
             const obj = session.value;
@@ -37,15 +36,11 @@ export async function middleware(request: NextRequest){
         }
 
     }
-
-    
-
-
 }
 
 export const config = {
     matcher: [
-        '/keyword',
+        '/keyword/:path*',
         '/login/:path*'
     ],
-  }
+}
