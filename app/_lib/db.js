@@ -390,43 +390,34 @@ export async function searchRecom(searchText){
 
 export async function selectAllProduct(){
     const connection = await getConnection();
-    const query = "SELECT title,cost,url,id FROM dcmall.productinfo";
+    const productQuery = "SELECT title, cost, url, id FROM dcmall.productinfo";
+    const siteQuery = "SELECT url FROM dcmall.site WHERE id = ?";
 
-    try{
-        const [result] = await connection.query(query);
-        
-        if(result.length > 0){
-            return {message: result, status: 200 };
-        }else{
-            return {message: "selectAllProduct Failed", status: 400};
+    try {
+        const [products] = await connection.query(productQuery);
+
+        if (products.length > 0) {
+            const productsWithSiteUrl = await Promise.all(products.map(async (product) => {
+                const [siteResult] = await connection.query(siteQuery, [product.id]);
+                const siteUrl = siteResult[0] ? siteResult[0].url : '';
+                return {
+                    ...product,
+                    perfectUrl: siteUrl + product.url
+                };
+            }));
+
+            return { message: productsWithSiteUrl, status: 200 };
+        } else {
+            return { message: "selectAllProduct Failed", status: 400 };
         }
-    }catch(err){
-        console.error("selectAllProduct 오류: "+err);
-        return {message: "selectAllProduct Error", status:400};
-    } finally{
-        if(connection) connection.end();
+    } catch (err) {
+        console.error("selectAllProduct 오류: " + err);
+        return { message: "selectAllProduct Error", status: 400 };
+    } finally {
+        if (connection) await connection.end();
     }
 }
 
-export async function perfectUrlByProductId(id){
-    const connection = await getConnection();
-    const query = "SELECT url FROM dcmall.site WHERE id = ?";
-
-    try{
-        const [result] = await connection.query(query, [id]);
-
-        if(result.length > 0){
-            return {message: result[0].url, status: 200};
-        }else{
-            return {message: "perfectUrlByProductId Failed", status: 400};
-        }
-    }catch(err){
-        console.error("perfectUrlByProductId 오류: "+err);
-        return {message: "perfectUrlByProductId Error", status: 400};
-    }finally{
-        if(connection) connection.end();
-    }
-}
 
 export async function selectUserByGoogleEmail(email){   //240828 테스트 필요!
     const connection = await getConnection();
@@ -550,6 +541,39 @@ function generateRandomString(length) {
         result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
     return result;
+}
+
+export async function searchLinking(searchText) {
+    let connection;
+    try {
+        connection = await getConnection();
+        const idQuery = "SELECT id,url FROM dcmall.productinfo WHERE title = ?;"
+        const costQuery = "SELECT cost FROM dcmall.productinfo WHERE title = ?;"
+        const siteQuery = "SELECT url FROM dcmall.site WHERE id = ?";
+        
+        const productsWithSiteUrl = await Promise.all(searchText.map(async (product) => {
+            const [idResult] = await connection.query(idQuery, [product.title]);
+            const id = idResult[0] ? idResult[0].id : '';
+            const url = idResult[0] ? idResult[0].url : '';
+            const [siteResult] = await connection.query(siteQuery, [id]);
+            const siteUrl = siteResult[0] ? siteResult[0].url : '';
+            const [costResult] = await connection.query(costQuery, [product.title]);
+            const cost = costResult[0] ? costResult[0].cost : '';
+
+            return {
+                ...product,
+                perfectUrl: siteUrl + url,
+                cost: cost
+            };
+        }));
+
+        return { message: productsWithSiteUrl, status: 200 };
+    } catch (err) {
+        console.error("searchLinking 실패: " + err);
+        return { message: "searchLinking 실패 " + err, status: 400 };
+    } finally {
+        if (connection) await connection.end();
+    }
 }
 
 export async function updateSessionIdEmail(session) {

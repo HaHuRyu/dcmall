@@ -9,7 +9,7 @@ export async function POST(req){
 
     if("threshold" in obj ){
         const cookieStore = cookies();
-        const nextSession = cookieStore.get('next-auth.session-token');
+        const nextSession = cookieStore.get('dcmall-session');
 
         const answer = await selectUserId(nextSession.value);
         if(answer){
@@ -17,7 +17,7 @@ export async function POST(req){
             emtext = getEmbedding(title, threshold);
         } else {
             const response = NextResponse.json({recommendations: "세션 변조 발생", check: 500});
-            response.cookies.set('next-auth.session-token', '',{
+            response.cookies.set('dcmall-session', '',{
                 expires: new Date(0),
                 path: '/'
             });

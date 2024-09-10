@@ -56,6 +56,24 @@ export default function ClientComponent({ sessionCookie }) {
       const recommandList = data.recommendations;
       if(response.status === 200){
         setResultList(recommandList);
+        try{
+          const response = await fetch('/api/post/searchResLinking', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              searchText: recommandList
+            })
+          });
+
+          const data = await response.json();
+          if(response.status === 200){
+            setResultList(data.message);
+          }
+        }catch(err){
+          console.log("searchResLinking Error: "+err);
+        }
       }else{
         alert("오류");
       }
@@ -66,9 +84,9 @@ export default function ClientComponent({ sessionCookie }) {
   };
 
   useEffect(() => {
-    if (resultList.length === 0) {
+    if (resultList === null || resultList.length === 0) {
       fetchAllProducts().then(() => {
-        // 데이터가 성공적으로 로드된 후 상태를 업데이트하여 강제로 렌더링을 유도
+
         setRenderTrigger(true);
     });
     }
@@ -143,7 +161,7 @@ const handleSignOut = async (e) => {
       </form>
       
       {renderTrigger && (
-            resultList.length > 0 ? (
+            resultList === null || resultList.length > 0 ? (
                 <InfScrollProvider>
                     <InfScroll searchResults={resultList} />
                 </InfScrollProvider>
