@@ -9,21 +9,18 @@ import crypto from 'crypto';
 
 let connection;
 
+const pool = mysql.createPool({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_DATABASE,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+  });
+  
 export async function getConnection() {
-    try{
-        connection = await mysql.createConnection({
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_DATABASE,
-        });
-        console.log('MySQL 데이터베이스에 연결되었습니다. 연결 ID:', connection.threadId);
-        return connection;
-    } catch(error){
-        console.error('MySQL 연결 오류:', error);
-        throw error;
-    }
-    
+return await pool.getConnection();
 }
 
 export async function queryDatabase(id) {
@@ -479,19 +476,19 @@ export async function selectSessionByGoogleEmail(email){    //240828 테스트 �
     }
 }
 
-export async function updateSessionByGoogleEmail(email, newSessionId){    //240828 테스트 필요!
+export async function updateSessionByGoogleEmail(email, newSessionId) {
     const connection = await getConnection();
-    const query = "UPDATE dcmall.userinfo SET sessionId = ? WHERE email = ?";
-
-    try{
-        await connection.query(query, [newSessionId, email]);
-
-        return {message: "sessionId Update Success by Google email", status : 200};
-    }catch(err){
-        console.error("updateSessionByGoogleEmail error: ",err);
-        return { message: "updateSessionByGoogleEmail error", status: 500 };
-    }finally{
-        if (connection) await connection.end();
+    try {
+      const [result] = await connection.execute(
+        "UPDATE dcmall.userinfo SET sessionId = ? WHERE email = ?",
+        [newSessionId, email]
+      );
+      return { message: "sessionId Update Success by Google email", status: 200 };
+    } catch (err) {
+      console.error("updateSessionByGoogleEmail error: ", err);
+      return { message: "updateSessionByGoogleEmail error", status: 500 };
+    } finally {
+      connection.release();
     }
 }
 

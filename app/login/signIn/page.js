@@ -1,97 +1,39 @@
 'use client'
-import React, { useEffect } from 'react';
-import{ useSession, signIn, signOut} from 'next-auth/react';
+import React, { useState, useEffect } from 'react';
+import { useSession, signIn } from 'next-auth/react';
 
 export default function SignIn() {
-  const { data: session } = useSession(); // status 추가
+  const [sessionSynced, setSessionSynced] = useState(false);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    // 비동기 작업을 처리하는 함수
-    const performAsyncActions = async () => {
-      try {
-        if(session){
-          console.log("유즈이펙트: " + JSON.stringify(session));
-  
-            console.log("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG: " + JSON.stringify(session));
-            
-            if (session.provider === 'google') {
-              await asyncGoogleSignIn(session);
-            }
-  
-            console.log("확인: " + JSON.stringify(session));
-            await asyncSessionRegist(session);
+    const syncSession = async () => {
+      if (session && status === "authenticated" && !sessionSynced) {
+        try {
+          const response = await fetch('/api/post/syncSession', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: session.user.email,
+              provider: session.provider,
+              sessionId: session.user.id
+            }),
+          });
+          if (response.ok) {
+            setSessionSynced(true);
+          } else {
+            console.error('세션 동기화 실패:', await response.text());
+          }
+        } catch (error) {
+          console.error('세션 동기화 오류:', error);
         }
-      } catch (error) {
-        console.error("Error in performAsyncActions: ", error);
       }
     };
-
-    // 비동기 함수 정의
-    const asyncGoogleSignIn = async (session) => {
-      try {
-        await googleSignIn(session);
-      } catch (err) {
-        console.log("asyncGoogleSignIn Error: " + err);
-      }
-    };
-
-    const asyncSessionRegist = async (session) => {
-      try {
-        await sessionRegist(session);
-      } catch (err) {
-        console.log("asyncSessionRegist Error: " + err);
-      }
-    };
-
-    // 비동기 함수 호출
-    performAsyncActions();
-
-  }, [session]); 
-
-  const sessionRegist = async (session) =>{
-    await fetch('/api/post/sessionRegist', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: session?.user?.email,
-        provider: session?.provider,
-      })
-    })
-  }
-
-  const googleSignIn = async (session) => {
-    try {
-      const response = await fetch('/api/post/joinServer/google', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: session?.user?.email, // 최신 세션 값을 사용합니다.
-        }),
-      });
   
-      const data = await response.json();
-  
-      if (response.status === 200) {
-        console.log('구글 로그인 성공');
-      } else if (response.status === 201) {
-        sessionStorage.setItem('userEmail', session?.user?.email || '');
-        window.location.href = data.url;
-      }
-    } catch (error) {
-      console.log("Google SignIn Error: " + error);
-    }
-  };
- 
-  const handleLogOut = async () => {
-    await signOut({ redirect: false });
-    sessionStorage.clear(); // 세션 스토리지를 명시적으로 클리어
-    await new Promise(resolve => setTimeout(resolve, 500)); // 0.5초 정도 기다리기
-    window.location.reload();
-  };
+    syncSession();
+  }, [session, status, sessionSynced]);
 
   return (
     <div>
