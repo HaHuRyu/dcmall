@@ -541,3 +541,21 @@ export async function updateSessionIdEmail(session) {
         if (connection) connection.end();
     }
 }
+
+
+export async function updateSessionInDB(email, sessionToken) {
+    const connection = await getConnection();
+    const query = "UPDATE userinfo SET sessionId = ? WHERE email = ?";
+    console.log("sessionToken : " + sessionToken)
+    console.log("email : " + email)
+  
+    try {
+      await connection.query(query, [sessionToken, email]);
+      console.log("Session updated in DB for email:",email);
+    } catch (error) {
+      console.error("Error updating session in DB:", error);
+      throw error;
+    } finally {
+      if (connection) await connection.end();
+    }
+}

@@ -48,17 +48,24 @@ export default function SignIn() {
 
   }, [session]); 
 
-  const sessionRegist = async (session) =>{
-    await fetch('/api/post/sessionRegist', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: session?.user?.email,
-        provider: session?.provider,
-      })
-    })
+  const sessionRegist = async (session) => {
+    try {
+      const response = await fetch('/api/post/sessionRegist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: session?.user?.email,
+          provider: session?.provider,
+          accessToken: session?.accessToken,
+        })
+      });
+      const data = await response.json();
+      console.log("Session registration result:", data);
+    } catch (error) {
+      console.error("Error registering session:", error);
+    }
   }
 
   const googleSignIn = async (session) => {
