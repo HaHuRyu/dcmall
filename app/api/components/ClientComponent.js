@@ -6,15 +6,18 @@ home.js는 서버 컴포넌트로서의 처리 쿠키에서 세션을 가져오�
 */
 import React, { useState, useEffect } from "react";
 import { InfScroll, InfScrollNoSearch, InfScrollProvider} from '../../util/infiniteScroll'
-import{ useSession, signIn, signOut} from 'next-auth/react';
 
-
-export default function ClientComponent() {
+export default function ClientComponent({ sessionCookie }) {
   const [searchWord, setSearchWord] = useState('');
   const [resultList, setResultList] = useState([]);
   const [allProductList, setAllProductList] = useState([]);
   const [renderTrigger, setRenderTrigger] = useState(false);
- 
+  const [session, setSession] = useState(sessionCookie);
+
+  useEffect(() => {
+    setSession(sessionCookie);
+  }, [sessionCookie]);
+
   const fetchAllProducts = async (e) => {
     try{
       const response = await fetch('/api/post/getAllProduct', {
@@ -53,6 +56,24 @@ export default function ClientComponent() {
       const recommandList = data.recommendations;
       if(response.status === 200){
         setResultList(recommandList);
+        try{
+          const response = await fetch('/api/post/searchResLinking', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              searchText: recommandList
+            })
+          });
+
+          const data = await response.json();
+          if(response.status === 200){
+            await setResultList(data.message);
+          }
+        }catch(err){
+          console.log("searchResLinking Error: "+err);
+        }
       }else{
         alert("오류");
       }
@@ -63,9 +84,9 @@ export default function ClientComponent() {
   };
 
   useEffect(() => {
-    if (resultList.length === 0) {
+    if (resultList === null || resultList.length === 0) {
       fetchAllProducts().then(() => {
-        // 데이터가 성공적으로 로드된 후 상태를 업데이트하여 강제로 렌더링을 유도
+
         setRenderTrigger(true);
     });
     }
@@ -98,11 +119,37 @@ export default function ClientComponent() {
         console.log("검색어 추천 캐치: " + err);
     }
 }
+const handleSignOut = async (e) => {
+  e.preventDefault();
+  try{
+    const response = await fetch('/api/post/login/signOut', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        sessionCookie: session
+      })
+    });
+
+    const data = await response.json();
+    const message = data.message;
+    
+    alert(message);
+    window.location.reload();
+  }catch(err){
+    console.log("로그아웃 오류: "+err);
+  }
+}
 
   return (
     <div>
-      <p>Dcmall</p>
-      <a href="/login/signIn"><button>로그인</button></a>
+      <a href="/"><p>Dcmall</p></a>
+      {!session ? (
+        <a href="/login/signIn"><button>로그인</button></a>
+      ) : (
+        <button onClick={handleSignOut}>로그아웃</button>
+      )}
 
       <form onSubmit={searchSubmit}>
         <input 
@@ -112,20 +159,9 @@ export default function ClientComponent() {
         onChange={(e) => setSearchWord(e.target.value)}/>
         <button type="submit">검색하기</button>
       </form>
-
-      {/* {resultList.length > 0 ? (
-        <ul>
-          {resultList.map((result, index) => (
-            <li key={index}>
-              {result.title}: {Number(result.similarity * 100).toFixed(2)}%
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>검색 결과가 없습니다.</p>
-      )} */}
+      
       {renderTrigger && (
-            resultList.length > 0 ? (
+            resultList === null || resultList.length > 0 ? (
                 <InfScrollProvider>
                     <InfScroll searchResults={resultList} />
                 </InfScrollProvider>

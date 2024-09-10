@@ -3,8 +3,8 @@ import { NextResponse } from "next/server";
 
 export async function POST(req){
     try{
-        const allProductQuery = await selectAllProduct()
-
+        const allProductQuery = await selectAllProduct();
+        
         return NextResponse.json({message: allProductQuery.message}, {status: 200})
     }catch(err){
         console.error("모든 상품 정보 가져오기 서버 오류")

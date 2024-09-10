@@ -1,110 +1,79 @@
 'use client'
-import React, { useEffect } from 'react';
-import{ useSession, signIn, signOut} from 'next-auth/react';
+import React, { useState } from 'react';
+import { GoogleLogin } from '@react-oauth/google';
+import { jwtDecode }from 'jwt-decode';
 
 export default function SignIn() {
-  const { data: session } = useSession(); // status 추가
+  const [id, setId] = useState('');
+  const [pw, setPw] = useState('');
 
-  useEffect(() => {
-    // 비동기 작업을 처리하는 함수
-    const performAsyncActions = async () => {
-      try {
-        if(session){
-          console.log("유즈이펙트: " + JSON.stringify(session));
-  
-            console.log("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG: " + JSON.stringify(session));
-            
-            if (session.provider === 'google') {
-              await asyncGoogleSignIn(session);
-            }
-  
-            console.log("확인: " + JSON.stringify(session));
-            await asyncSessionRegist(session);
-        }
-      } catch (error) {
-        console.error("Error in performAsyncActions: ", error);
-      }
-    };
-
-    // 비동기 함수 정의
-    const asyncGoogleSignIn = async (session) => {
-      try {
-        await googleSignIn(session);
-      } catch (err) {
-        console.log("asyncGoogleSignIn Error: " + err);
-      }
-    };
-
-    const asyncSessionRegist = async (session) => {
-      try {
-        await sessionRegist(session);
-      } catch (err) {
-        console.log("asyncSessionRegist Error: " + err);
-      }
-    };
-
-    // 비동기 함수 호출
-    performAsyncActions();
-
-  }, [session]); 
-
-  const sessionRegist = async (session) => {
-    try {
-      const response = await fetch('/api/post/sessionRegist', {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try{
+      const response = await fetch('/api/post/login/custom', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          email: session?.user?.email,
-          provider: session?.provider,
-          accessToken: session?.accessToken,
+          email: id,
+          password: pw
         })
       });
       const data = await response.json();
-      console.log("Session registration result:", data);
-    } catch (error) {
-      console.error("Error registering session:", error);
+      alert(data.message);
+
+      if(response.status === 200){
+        window.location.href = '/';
+      }
+    }
+    catch(error){
+      console.log("로그인 실패:", error);
     }
   }
+  const handleGoogleLoginSuccess = async (credentialResponse) => {
+    const decoded = jwtDecode(credentialResponse.credential);
+    const { email, name, picture, given_name, family_name, locale, sub } = decoded;
 
-  const googleSignIn = async (session) => {
     try {
-      const response = await fetch('/api/post/joinServer/google', {
+      const response = await fetch('/api/post/login/google', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          email: session?.user?.email, // 최신 세션 값을 사용합니다.
-        }),
+          // email: decoded.email,
+          // name: decoded.name,
+          // picture: decoded.picture
+          email:email,
+          name: name,
+          picture: picture,
+          givenName: given_name,
+          familyName: family_name,
+          locale: locale,
+          googleId: sub
+        })
       });
-  
+
       const data = await response.json();
-  
-      if (response.status === 200) {
-        console.log('구글 로그인 성공');
-      } else if (response.status === 201) {
-        sessionStorage.setItem('userEmail', session?.user?.email || '');
-        window.location.href = data.url;
+
+      if(response.status === 200){
+        alert(data.message);
+        window.location.href = '/';
+      }else if(response.status === 201){
+        sessionStorage.setItem('userEmail', email);
+        window.location.href = data.message;
       }
     } catch (error) {
-      console.log("Google SignIn Error: " + error);
+      console.log("구글 로그인 오류:", error);
     }
-  };
- 
-  const handleLogOut = async () => {
-    await signOut({ redirect: false });
-    sessionStorage.clear(); // 세션 스토리지를 명시적으로 클리어
-    await new Promise(resolve => setTimeout(resolve, 500)); // 0.5초 정도 기다리기
-    window.location.reload();
-  };
+  }
 
   return (
     <div>
       <h4>dcmall</h4>
 
-      {!session ? ( //signIn안에 'google or credentials'로 지정해주면 문자열+Provider 방식의 로그인을 한다는 의미 문자열로 커스텀 구글을 나눈다
+      {/* {!session ? ( //signIn안에 'google or credentials'로 지정해주면 문자열+Provider 방식의 로그인을 한다는 의미 문자열로 커스텀 구글을 나눈다
         <>
           <button onClick={() => signIn('google', {redirect: false})}>구글 로그인</button>
           <form onSubmit={async (e) => {
@@ -123,16 +92,28 @@ export default function SignIn() {
         </>
       ) : (
         <button onClick={() => handleLogOut()}>로그아웃</button>
-      )}
+      )} */}
+
+  <GoogleLogin
+        onSuccess={handleGoogleLoginSuccess}
+        onError={() => {
+          console.log('구글 로그인 실패');
+        }}
+      />
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Email"
+          onChange={(e) => setId(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          onChange={(e) => setPw(e.target.value)}
+        />
+        <button type="submit">커스텀 로그인</button>
+      </form>
       
-      {session ? (
-        <div>
-          <p>Name: {session.user.name}</p>
-          <p>Email: {session.user.email}</p>
-        </div>
-      ) : (
-        <p>Please sign in to see your profile</p>
-      )}
 
       <a href="/login/join"><button>회원가입</button></a>
       <a href="/login/findID"><button>ID 찾기</button></a>

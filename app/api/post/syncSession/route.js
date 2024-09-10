@@ -1,23 +1,28 @@
-import { updateSessionIdEmail } from '../../../_lib/db'; // 세션 정보를 DB에 업데이트하는 함수
+import { NextResponse } from 'next/server';
+import { updateSessionByGoogleEmail, updateSessionId } from '../../../_lib/db';
 
-export default async function handler(req, res) {
-  if (req.method === 'POST') {
-    try {
-      const session = req.body;
+export async function POST(req) {
+  try {
+    const { email, provider, sessionId } = await req.json();
 
-      // 세션 정보를 데이터베이스에 저장 또는 업데이트하는 함수 호출
-      const result = await updateSessionIdEmail(session);
-
-      if (result.success) {
-        res.status(200).json({ message: 'Session synchronized successfully' });
-      } else {
-        res.status(500).json({ message: 'Failed to synchronize session' });
-      }
-    } catch (error) {
-      console.error('Error syncing session:', error);
-      res.status(500).json({ message: 'Internal server error' });
+    if (!email || !provider || !sessionId) {
+      return NextResponse.json({ message: '필수 정보가 누락되었습니다.' }, { status: 400 });
     }
-  } else {
-    res.status(405).json({ message: 'Method not allowed' });
+
+    let result;
+    if (provider === 'google') {
+      result = await updateSessionByGoogleEmail(email, sessionId);
+    } else {
+      result = await updateSessionId(email, sessionId);
+    }
+
+    if (result.status === 200) {
+      return NextResponse.json({ message: `${provider} 로그인 세션 등록 완료!` }, { status: 200 });
+    } else {
+      return NextResponse.json({ message: `${provider} 로그인 세션 등록 실패: ${result.message}` }, { status: 400 });
+    }
+  } catch (error) {
+    console.error('세션 동기화 오류:', error);
+    return NextResponse.json({ message: '서버 오류가 발생했습니다.' }, { status: 500 });
   }
 }

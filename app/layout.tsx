@@ -1,20 +1,17 @@
-// app/layout.tsx
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
-import { ReactNode } from 'react';
-import AuthContext from './context/AuthContext'; // Import your context provider
-
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en">
-      <head>
-        <title>My App</title>
-        {/* Add any other head elements like meta tags here */}
-      </head>
       <body>
-        <AuthContext>
+        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}>
           {children}
-        </AuthContext>
+        </GoogleOAuthProvider>
       </body>
     </html>
-  );
+  )
 }

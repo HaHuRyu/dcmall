@@ -13,6 +13,9 @@ const nextConfig = {
     pass: process.env.EMAIL_PASSWORD,
     key: process.env.OPEN_API_KEY
   }
+  
 }
+
+
 
 export default nextConfig;

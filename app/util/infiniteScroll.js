@@ -17,6 +17,7 @@ export function InfScrollProvider({ children }){
 }
 
 export function InfScroll({ searchResults }) {
+    console.log("아이씨: ", JSON.stringify(searchResults));
     const {
         data,
         fetchNextPage,
@@ -55,13 +56,15 @@ export function InfScroll({ searchResults }) {
 
     return (
         <div className="scroll-container" style={{ minHeight: '100vh', overflowY: 'auto' }}>
-            <h1>Search Results</h1>
             <ul style={{ listStyleType: 'none', padding: 0 }}>
                 {data?.pages.map((page, index) => (
                     <React.Fragment key={index}>
                         {page.results.map(item => (
                             <li key={item.title} style={{ marginBottom: '20px' }}>
-                                {item.title} - 유사도: {Number(item.similarity * 100).toFixed(2)}%
+                                <a href={item.perfectUrl} target="_blank" rel="noopener noreferrer">
+                                    {item.title} - 유사도: {Number(item.similarity * 100).toFixed(2)}%
+                                </a>
+                                <p>가격: {item.cost}원</p>
                             </li>
                         ))}
                     </React.Fragment>
@@ -117,7 +120,10 @@ export function InfScrollNoSearch({ searchResults }) {
                     <React.Fragment key={index}>
                         {page.results.map(item => (
                             <li key={item.title} style={{ marginBottom: '20px' }}>
-                                {item.title}
+                                <a href={item.perfectUrl} target="_blank" rel="noopener noreferrer">
+                                    {item.title}
+                                </a>
+                                <p>가격: {item.cost}원</p>
                             </li>
                         ))}
                     </React.Fragment>
