@@ -7,13 +7,18 @@ home.js는 서버 컴포넌트로서의 처리 쿠키에서 세션을 가져오�
 import React, { useState, useEffect } from "react";
 import { InfScroll, InfScrollNoSearch, InfScrollProvider} from '../../util/infiniteScroll'
 
-export default function ClientComponent() {
+export default function ClientComponent({ sessionCookie }) {
   const [searchWord, setSearchWord] = useState('');
   const [resultList, setResultList] = useState([]);
   const [allProductList, setAllProductList] = useState([]);
   const [renderTrigger, setRenderTrigger] = useState(false);
+  const [session, setSession] = useState(sessionCookie);
 
- 
+  useEffect(() => {
+    setSession(sessionCookie);
+    console.log("sessionCookie: "+session);
+  }, [sessionCookie]);
+
   const fetchAllProducts = async (e) => {
     try{
       const response = await fetch('/api/post/getAllProduct', {
@@ -97,11 +102,37 @@ export default function ClientComponent() {
         console.log("검색어 추천 캐치: " + err);
     }
 }
+const handleSignOut = async (e) => {
+  e.preventDefault();
+  try{
+    const response = await fetch('/api/post/login/signOut', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        sessionCookie: session
+      })
+    });
+
+    const data = await response.json();
+    const message = data.message;
+    
+    alert(message);
+    window.location.reload();
+  }catch(err){
+    console.log("로그아웃 오류: "+err);
+  }
+}
 
   return (
     <div>
       <p>Dcmall</p>
-      <a href="/login/signIn"><button>로그인</button></a>
+      {!session ? (
+        <a href="/login/signIn"><button>로그인</button></a>
+      ) : (
+        <button onClick={handleSignOut}>로그아웃</button>
+      )}
 
       <form onSubmit={searchSubmit}>
         <input 
