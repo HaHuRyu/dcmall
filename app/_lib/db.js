@@ -390,22 +390,21 @@ export async function searchRecom(searchText){
 
 export async function selectAllProduct(){
     const connection = await getConnection();
-    const productQuery = "SELECT title, cost, url, id FROM dcmall.productinfo";
-    const siteQuery = "SELECT url FROM dcmall.site WHERE id = ?";
+    const query = `
+    SELECT 
+        dcmall.productinfo.title AS title, 
+        dcmall.productinfo.cost AS cost, 
+        CONCAT(dcmall.site.url, dcmall.productinfo.url) AS perfectUrl 
+    FROM 
+        dcmall.productinfo 
+    LEFT OUTER JOIN 
+        dcmall.site ON dcmall.productinfo.id = dcmall.site.id;
+`;
 
     try {
-        const [products] = await connection.query(productQuery);
+        const [productsWithSiteUrl] = await connection.query(query);
 
-        if (products.length > 0) {
-            const productsWithSiteUrl = await Promise.all(products.map(async (product) => {
-                const [siteResult] = await connection.query(siteQuery, [product.id]);
-                const siteUrl = siteResult[0] ? siteResult[0].url : '';
-                return {
-                    ...product,
-                    perfectUrl: siteUrl + product.url
-                };
-            }));
-
+        if (productsWithSiteUrl.length > 0) {
             return { message: productsWithSiteUrl, status: 200 };
         } else {
             return { message: "selectAllProduct Failed", status: 400 };
@@ -531,32 +530,53 @@ function generateRandomString(length) {
     return result;
 }
 
-export async function searchLinking(searchText) {
+export async function searchLinking(searchTexts) {
     let connection;
     try {
         connection = await getConnection();
-        const productInfoQuery = "SELECT cost,id,url FROM dcmall.productinfo WHERE title = ?;"
-        const siteQuery = "SELECT url FROM dcmall.site WHERE id = ?";
         
-        const productsWithSiteUrl = await Promise.all(searchText.map(async (product) => {
-            const [productResult] = await connection.query(productInfoQuery, [product.title]);
-            const id = productResult[0] ? productResult[0].id : '';
-            const url = productResult[0] ? productResult[0].url : '';
-            const cost = productResult[0] ? productResult[0].cost : '';
-            const [siteResult] = await connection.query(siteQuery, [id]);
-            const siteUrl = siteResult[0] ? siteResult[0].url : '';
-           
+        if (!Array.isArray(searchTexts) || searchTexts.length === 0) {
+            throw new Error("Invalid searchTexts: must be a non-empty array");
+        }
+
+        const titles = searchTexts.map(item => item.title);
+
+        // 동적으로 OR 조건 생성
+        const conditions = titles.map(() => 'dcmall.productinfo.title = ?').join(' OR ');
+        const query = `
+        SELECT
+            dcmall.productinfo.title AS title,
+            dcmall.productinfo.cost AS cost,
+            CONCAT(dcmall.site.url, dcmall.productinfo.url) AS perfectUrl
+        FROM 
+            dcmall.productinfo
+            LEFT OUTER JOIN dcmall.site ON dcmall.productinfo.id = dcmall.site.id
+        WHERE
+            ${conditions};
+        `;
+
+        const [productsWithSiteUrl] = await connection.query(query, titles);
+
+        if (productsWithSiteUrl.length === 0) {
+            return { message: "No matching products found", status: 404 };
+        }
+
+        // 결과에 similarity 추가
+        const resultsWithSimilarity = productsWithSiteUrl.map(product => {
+            const searchItem = searchTexts.find(item => item.title === product.title);
             return {
                 ...product,
-                perfectUrl: siteUrl + url,
-                cost: cost
+                similarity: searchItem ? searchItem.similarity : null
             };
-        }));
+        });
 
-        return { message: productsWithSiteUrl, status: 200 };
+        // similarity를 기준으로 내림차순 정렬
+        resultsWithSimilarity.sort((a, b) => b.similarity - a.similarity);
+
+        return { message: resultsWithSimilarity, status: 200 };
     } catch (err) {
-        console.error("searchLinking 실패: " + err);
-        return { message: "searchLinking 실패 " + err, status: 400 };
+        console.error("searchLinking 실패:", err);
+        return { message: `searchLinking 실패: ${err.message}`, status: 400 };
     } finally {
         if (connection) await connection.end();
     }

@@ -69,7 +69,7 @@ export default function ClientComponent({ sessionCookie }) {
 
           const data = await response.json();
           if(response.status === 200){
-            setResultList(data.message);
+            await setResultList(data.message);
           }
         }catch(err){
           console.log("searchResLinking Error: "+err);
@@ -144,7 +144,7 @@ const handleSignOut = async (e) => {
 
   return (
     <div>
-      <p>Dcmall</p>
+      <a href="/"><p>Dcmall</p></a>
       {!session ? (
         <a href="/login/signIn"><button>로그인</button></a>
       ) : (

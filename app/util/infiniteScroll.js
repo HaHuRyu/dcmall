@@ -17,6 +17,7 @@ export function InfScrollProvider({ children }){
 }
 
 export function InfScroll({ searchResults }) {
+    console.log("아이씨: ", JSON.stringify(searchResults));
     const {
         data,
         fetchNextPage,
@@ -55,28 +56,22 @@ export function InfScroll({ searchResults }) {
 
     return (
         <div className="scroll-container" style={{ minHeight: '100vh', overflowY: 'auto' }}>
-            <h1>Search Results</h1>
             <ul style={{ listStyleType: 'none', padding: 0 }}>
-                {data?.pages.map((page, index) => {
-                    console.log("Page data:", page);
-                    return (
-                        <React.Fragment key={index}>
-                        {page.results.map(item => {
-                            console.log("Item data:", item);
-                            return (
-                                <li key={item.title} style={{ marginBottom: '20px' }}>
-                                    <a href={item.perfectUrl} target="_blank" rel="noopener noreferrer">
-                                        {item.title} - 유사도: {Number(item.similarity * 100).toFixed(2)}%
-                                    </a>
-                                    <p>가격: {item.cost}원</p>
-                                </li>
-                            );
-                        })}
+                {data?.pages.map((page, index) => (
+                    <React.Fragment key={index}>
+                        {page.results.map(item => (
+                            <li key={item.title} style={{ marginBottom: '20px' }}>
+                                <a href={item.perfectUrl} target="_blank" rel="noopener noreferrer">
+                                    {item.title} - 유사도: {Number(item.similarity * 100).toFixed(2)}%
+                                </a>
+                                <p>가격: {item.cost}원</p>
+                            </li>
+                        ))}
                     </React.Fragment>
-                    );
-                })}
+                ))}
             </ul>
-            {/* ... 나머지 코드 ... */}
+            <div ref={loaderRef} style={{ height: '100px', background: 'transparent' }}></div>
+            {isFetchingNextPage && <p>Loading more...</p>}
         </div>
     );
 }
