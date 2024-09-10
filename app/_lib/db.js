@@ -547,19 +547,17 @@ export async function searchLinking(searchText) {
     let connection;
     try {
         connection = await getConnection();
-        const idQuery = "SELECT id,url FROM dcmall.productinfo WHERE title = ?;"
-        const costQuery = "SELECT cost FROM dcmall.productinfo WHERE title = ?;"
+        const productInfoQuery = "SELECT cost,id,url FROM dcmall.productinfo WHERE title = ?;"
         const siteQuery = "SELECT url FROM dcmall.site WHERE id = ?";
         
         const productsWithSiteUrl = await Promise.all(searchText.map(async (product) => {
-            const [idResult] = await connection.query(idQuery, [product.title]);
-            const id = idResult[0] ? idResult[0].id : '';
-            const url = idResult[0] ? idResult[0].url : '';
+            const [productResult] = await connection.query(productInfoQuery, [product.title]);
+            const id = productResult[0] ? productResult[0].id : '';
+            const url = productResult[0] ? productResult[0].url : '';
+            const cost = productResult[0] ? productResult[0].cost : '';
             const [siteResult] = await connection.query(siteQuery, [id]);
             const siteUrl = siteResult[0] ? siteResult[0].url : '';
-            const [costResult] = await connection.query(costQuery, [product.title]);
-            const cost = costResult[0] ? costResult[0].cost : '';
-
+           
             return {
                 ...product,
                 perfectUrl: siteUrl + url,
