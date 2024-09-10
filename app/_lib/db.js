@@ -390,25 +390,31 @@ export async function searchRecom(searchText){
 
 export async function selectAllProduct(){
     const connection = await getConnection();
-    const query = "SELECT title,cost,url FROM dcmall.productinfo";
+    const productQuery = "SELECT title, cost, url, id FROM dcmall.productinfo";
+    const siteQuery = "SELECT url FROM dcmall.site WHERE id = ?";
 
-    try{
-        const [result] = await connection.query(query);
-        
-        if(result.length > 0){
-            // const titles = result.map(result => result.title);
-            //  // JSON 객체로 변환
-            //  const response = { title: titles };
+    try {
+        const [products] = await connection.query(productQuery);
 
-            return {message: result, status: 200 };
-        }else{
-            return {message: "selectAllProduct Failed", status: 400};
+        if (products.length > 0) {
+            const productsWithSiteUrl = await Promise.all(products.map(async (product) => {
+                const [siteResult] = await connection.query(siteQuery, [product.id]);
+                const siteUrl = siteResult[0] ? siteResult[0].url : '';
+                return {
+                    ...product,
+                    perfectUrl: siteUrl + product.url
+                };
+            }));
+
+            return { message: productsWithSiteUrl, status: 200 };
+        } else {
+            return { message: "selectAllProduct Failed", status: 400 };
         }
-    }catch(err){
-        console.error("selectAllProduct 오류: "+err);
-        return {message: "selectAllProduct Error", status:400};
-    } finally{
-        if(connection) connection.end();
+    } catch (err) {
+        console.error("selectAllProduct 오류: " + err);
+        return { message: "selectAllProduct Error", status: 400 };
+    } finally {
+        if (connection) await connection.end();
     }
 }
 
@@ -523,6 +529,37 @@ function generateRandomString(length) {
         result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
     return result;
+}
+
+export async function searchLinking(searchText) {
+    let connection;
+    try {
+        connection = await getConnection();
+        const productInfoQuery = "SELECT cost,id,url FROM dcmall.productinfo WHERE title = ?;"
+        const siteQuery = "SELECT url FROM dcmall.site WHERE id = ?";
+        
+        const productsWithSiteUrl = await Promise.all(searchText.map(async (product) => {
+            const [productResult] = await connection.query(productInfoQuery, [product.title]);
+            const id = productResult[0] ? productResult[0].id : '';
+            const url = productResult[0] ? productResult[0].url : '';
+            const cost = productResult[0] ? productResult[0].cost : '';
+            const [siteResult] = await connection.query(siteQuery, [id]);
+            const siteUrl = siteResult[0] ? siteResult[0].url : '';
+           
+            return {
+                ...product,
+                perfectUrl: siteUrl + url,
+                cost: cost
+            };
+        }));
+
+        return { message: productsWithSiteUrl, status: 200 };
+    } catch (err) {
+        console.error("searchLinking 실패: " + err);
+        return { message: "searchLinking 실패 " + err, status: 400 };
+    } finally {
+        if (connection) await connection.end();
+    }
 }
 
 export async function updateSessionIdEmail(session) {
