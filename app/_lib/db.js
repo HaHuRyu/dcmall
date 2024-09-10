@@ -122,14 +122,14 @@ export async function finalIdCheck(id) {
     return false;
 }
 
-export async function setUser(userId, userPw, email, nick) {
+export async function setUser(userId, userPw, email, nick) {    //240828 테스트 필요!
     const connection = await getConnection();
-    const query1 = "INSERT INTO user(id, password) VALUES (?, ?)";
+    const query1 = "INSERT INTO user(id, password, signinType) VALUES (?, ?, ?)";
     const findUserNum = "SELECT num FROM user WHERE id = ? && password = ?"
     const query2 = "INSERT INTO userinfo(num, email, nickname) VALUES (?, ?, ?)";
 
     try {
-        await connection.query(query1, [userId, userPw]);
+        await connection.query(query1, [userId, userPw, 0]);
         let userNum = await connection.query(findUserNum, [userId, userPw]);
         await connection.query(query2, [userNum[0][0].num, email, nick]);
         return { message: "회원가입 성공!", status: 200 };
@@ -141,15 +141,17 @@ export async function setUser(userId, userPw, email, nick) {
     }
 }
 
-export async function findID(email){
+export async function findID(email){ //240828 테스트 필요!
     const connection = await getConnection();
     const query = "SELECT num FROM userinfo WHERE email = ?";
+    const userType = "SELECT signinType FROM user WHERE num = ?"
     const find = "SELECT id FROM user WHERE num = ?";
 
     try {
         const [userNum] = await connection.query(query, [email]);
+        const [Type] = await connection.query(userType, [userNum[0].num]);
 
-        if (userNum.length > 0) {
+        if (userNum.length > 0 && Type.length > 0 && Type[0].signinType == 0) {
             const [result] = await connection.query(find, [userNum[0].num]);
 
             if (result.length > 0) {
@@ -192,23 +194,33 @@ export async function writeEmailToken(id, email){    //비밀번호 찾기가 �
     }
 }
 
-export async function updatePassword(email_token){
+export async function updatePassword(email_token){ //240828 테스트 필요!
     const connection = await getConnection();
     const selectNumQuery = "SELECT num FROM userinfo WHERE email_token = ?"
+    const userType = "SELECT signinType FROM user WHERE num = ?";
     const updateTokenQuery = "UPDATE userinfo SET reset_token = ?, reset_token_expiry = ? WHERE num = ?";
 
     try{
         const [userNum] = await connection.query(selectNumQuery, [email_token])
-    
-        const token = crypto.randomBytes(32).toString('hex');
-        const expiry = new Date(Date.now() + 1200000);  // 20분 유효
-
-        await connection.query(updateTokenQuery, [token, expiry, userNum[0].num]);
-
-        // 리셋 링크 생성
-        const resetLink = `http://localhost:3000/reset-password?token=${token}`;
-
-        return { message: resetLink, status: 200 };
+        if(userNum.length > 0){
+            const [Type] = await connection.query(userType, [userNum[0].num]);
+            if(Type.length > 0 && Type[0].signinType == 0){
+                const token = crypto.randomBytes(32).toString('hex');
+                const expiry = new Date(Date.now() + 1200000);  // 20분 유효
+        
+                await connection.query(updateTokenQuery, [token, expiry, userNum[0].num]);
+        
+                // 리셋 링크 생성
+                const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+        
+                return { message: resetLink, status: 200 };
+            }
+            else
+                return {message: '비밀번호를 초기화 할 수 없는 계정입니다.', status: 400};
+        }  
+        else
+            return {message: '비밀번호를 초기화 할 수 없는 계정입니다.', status: 400};
+        
         
     }catch {
         return {message : '이메일의 토큰과 일치하지 않습니다', status: 400}
@@ -218,9 +230,10 @@ export async function updatePassword(email_token){
 }
 
 
-export async function resetPassword(token, newPassword) {
+export async function resetPassword(token, newPassword) { //240828 테스트 필요!
     const connection = await getConnection();
     const query = "SELECT num, reset_token_expiry FROM userinfo WHERE reset_token = ?";
+    const userType = "SELECT signinType FROM user WHERE num = ?";
     const updatePasswordQuery = "UPDATE user SET password = ? WHERE num = ?";
     const clearTokenQuery = "UPDATE userinfo SET reset_token = NULL, reset_token_expiry = NULL WHERE num = ?";
 
@@ -230,6 +243,11 @@ export async function resetPassword(token, newPassword) {
         if (result.length === 0 || result[0].reset_token_expiry < new Date()) {
             return { message: "Invalid or expired token", status: 400 };
         }
+
+        const [Type] = await connection.query(userType,[result[0].num]);
+
+        if(Type.length === 0 || Type[0].signinType != 0)
+            return { message: "비밀번호가 초기화 불가한 계정입니다.", status: 400 };
 
         await connection.query(updatePasswordQuery, [newPassword, result[0].num]);
         await connection.query(clearTokenQuery, [result[0].num]);
@@ -258,6 +276,25 @@ export async function findSessionById(id, newSession){
     }catch(error){
         console.error("findSessionById error: ",error);
         return {message: "null", status:400};
+    }finally{
+        if(connection) connection.end();
+    }
+}
+
+export async function compareSession(id){
+    const connection = await getConnection();
+    const compareQuery = "SELECT sessionId FROM userinfo WHERE num = (SELECT num FROM user WHERE id = ?)";
+
+    try{
+        const [result] = await connection.query(compareQuery, [id]);
+        if(result.length > 0){
+            return {message: result[0].sessionId, status:200};
+        }else{
+            return {message: "null", status:400};
+        }
+    }catch(err){
+        console.error("compareSession error", err);
+        return {message: "compareSession 에러", status: 400};
     }finally{
         if(connection) connection.end();
     }
@@ -316,11 +353,14 @@ export async function getPasswordById(id){
  */
 export async function deleteUser(id){
     const connection = await getConnection();
-    const deleteUserInfo = "DELETE FROM userinfo WHERE num = (SELECT num FROM user WHERE id = ?)";
-    const deleteUser = "DELETE FROM user WHERE id = ?";
+    const findUserNum = "SELECT num FROM userinfo WHERE sessionId = ?"
+    const deleteUserInfo = "DELETE FROM userinfo WHERE num = ?";
+    const deleteUser = "DELETE FROM user WHERE num = ?";
     try{
-        await connection.query(deleteUserInfo, [id]);
-        await connection.query(deleteUser, [id]);
+        const [userNum] = await connection.query(findUserNum, [cookieSession]);
+        await connection.query(deleteUserInfo, [userNum[0].num]);
+        await connection.query(deleteUser, [userNum[0].num]);
+
         return {message: "삭제가 완료되었습니다!", status: 200};
     }catch(err){
         return {message: "삭제에 실패하였습니다.", status: 400};
@@ -336,7 +376,6 @@ export async function searchRecom(searchText){
     try{
         const [result] = await connection.query(query, [searchText]);
         if (result.length > 0) {
-            console.log(`First result: ${result[0].title}`);
             return { message: result, status: 200 };
         } else {
             return { message: "No results", status: 200 };
@@ -349,15 +388,128 @@ export async function searchRecom(searchText){
     }
 }
 
+export async function selectAllProduct(){
+    const connection = await getConnection();
+    const query = `
+    SELECT 
+        dcmall.productinfo.title AS title, 
+        dcmall.productinfo.cost AS cost, 
+        CONCAT(dcmall.site.url, dcmall.productinfo.url) AS perfectUrl 
+    FROM 
+        dcmall.productinfo 
+    LEFT OUTER JOIN 
+        dcmall.site ON dcmall.productinfo.id = dcmall.site.id;
+`;
+
+    try {
+        const [productsWithSiteUrl] = await connection.query(query);
+
+        if (productsWithSiteUrl.length > 0) {
+            return { message: productsWithSiteUrl, status: 200 };
+        } else {
+            return { message: "selectAllProduct Failed", status: 400 };
+        }
+    } catch (err) {
+        console.error("selectAllProduct 오류: " + err);
+        return { message: "selectAllProduct Error", status: 400 };
+    } finally {
+        if (connection) await connection.end();
+    }
+}
+
+export async function selectUserByGoogleEmail(email){   //240828 테스트 필요!
+    const connection = await getConnection();
+    const query = "SELECT nickname FROM userinfo WHERE email = ?";
+
+    try{
+        const [result] = await connection.query(query, [email]);
+
+        if(result.length > 0){
+            return {nickname: result[0].nickname, status: 200};
+        }
+        else{
+            return {message: "새로운 유저", status: 201};
+        }
+    }catch(err){
+        console.error("selectUserByGoogleEmail 오류: ",err);
+        return {message: "selectUserByGoogleEmail Error", status: 400}
+    }finally{
+        if(connection) connection.end();
+    }
+}
+
+export async function setUserGoogleLogin(email, nick) {    //240828 테스트 필요!
+    const connection = await getConnection();
+    const query1 = "INSERT INTO user(id, password, signinType) VALUES (?, ?, ?)";
+    const findUserNum = "SELECT num FROM user WHERE id = ? && password = ?"
+    const query2 = "INSERT INTO userinfo(num, email, nickname) VALUES (?, ?, ?)";
+
+    try {
+        const userId = generateRandomString(10);  // 10자리의 난수 ID 생성
+        const userPw = generateRandomString(10);  // 10자리의 난수 PW 생성
+
+        await connection.query(query1, [userId, userPw, 1]);  //여기선 아이디와 비밀번호를 임의로 만들었지만 어찌 할지 추후 결정
+        let userNum = await connection.query(findUserNum, [userId, userPw]);
+        await connection.query(query2, [userNum[0][0].num, email, nick]);
+        return { message: "회원가입 성공!", status: 200 };
+    } catch (error) {
+        console.error("setUserGoogleLogin error: ", error); // 구체적인 에러 메시지 출력
+        return { message: "DataBase Query Error", status: 500 };
+    }finally {
+        if (connection) await connection.end();
+    }
+}
+
+export async function selectSessionByGoogleEmail(email){    //240828 테스트 필요!
+    const connection = await getConnection();
+    const query = "SELECT sessionId FROM userinfo WHERE email = ?";
+
+    try{
+        const [result] = await connection.query(query, [email]);
+
+        if(result.length > 0){
+            if(result[0].sessionId === null){
+                return {message: "세션이 존재하지 않는 구글 이메일!", status: 404};
+            }else{
+                return {sessionId: result[0].sessionId, status: 200};
+            }
+        }else{
+            return { message: "selectSessionByGoogleEmail error", status: 500 };
+        }
+    } catch(err){
+        console.error("selectSessionByGoogleEmail error: ", err); // 구체적인 에러 메시지 출력
+        return { message: "selectSessionByGoogleEmail error", status: 500 };
+    }finally{
+        if (connection) await connection.end();
+    }
+}
+
+export async function updateSessionByGoogleEmail(email, newSessionId){    //240828 테스트 필요!
+    const connection = await getConnection();
+    const query = "UPDATE dcmall.userinfo SET sessionId = ? WHERE email = ?";
+
+    try{
+        await connection.query(query, [newSessionId, email]);
+
+        return {message: "sessionId Update Success by Google email", status : 200};
+    }catch(err){
+        console.error("updateSessionByGoogleEmail error: ",err);
+        return { message: "updateSessionByGoogleEmail error", status: 500 };
+    }finally{
+        if (connection) await connection.end();
+    }
+}
 
 export async function selectUserId(CookieSessionId){
     const connection = await getConnection();
     const SelectUserId = "SELECT num FROM userinfo WHERE sessionId = ?"
     try{
         const [rows] = await connection.query(SelectUserId, [CookieSessionId]);
-        return rows
+        console.log(rows[0].num);
+
+        return rows[0].num
     }catch(err){
-        return false;
+        return 0;
     }finally{
         if(connection) connection.end();
     }
@@ -367,3 +519,101 @@ function idStringCheck(id){
     return /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(id);
 }
 
+function generateRandomString(length) {
+    let result = '';
+    const characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    const charactersLength = characters.length;
+
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+}
+
+export async function searchLinking(searchTexts) {
+    let connection;
+    try {
+        connection = await getConnection();
+        
+        if (!Array.isArray(searchTexts) || searchTexts.length === 0) {
+            throw new Error("Invalid searchTexts: must be a non-empty array");
+        }
+
+        const titles = searchTexts.map(item => item.title);
+
+        // 동적으로 OR 조건 생성
+        const conditions = titles.map(() => 'dcmall.productinfo.title = ?').join(' OR ');
+        const query = `
+        SELECT
+            dcmall.productinfo.title AS title,
+            dcmall.productinfo.cost AS cost,
+            CONCAT(dcmall.site.url, dcmall.productinfo.url) AS perfectUrl
+        FROM 
+            dcmall.productinfo
+            LEFT OUTER JOIN dcmall.site ON dcmall.productinfo.id = dcmall.site.id
+        WHERE
+            ${conditions};
+        `;
+
+        const [productsWithSiteUrl] = await connection.query(query, titles);
+
+        if (productsWithSiteUrl.length === 0) {
+            return { message: "No matching products found", status: 404 };
+        }
+
+        // 결과에 similarity 추가
+        const resultsWithSimilarity = productsWithSiteUrl.map(product => {
+            const searchItem = searchTexts.find(item => item.title === product.title);
+            return {
+                ...product,
+                similarity: searchItem ? searchItem.similarity : null
+            };
+        });
+
+        // similarity를 기준으로 내림차순 정렬
+        resultsWithSimilarity.sort((a, b) => b.similarity - a.similarity);
+
+        return { message: resultsWithSimilarity, status: 200 };
+    } catch (err) {
+        console.error("searchLinking 실패:", err);
+        return { message: `searchLinking 실패: ${err.message}`, status: 400 };
+    } finally {
+        if (connection) await connection.end();
+    }
+}
+
+export async function updateSessionIdEmail(session) {
+    const connection = await getConnection();
+    const query = "UPDATE userinfo SET sessionId = ? WHERE email = ?";
+    const values = [session.provider ,session.user.email]
+    console.log("check : " + session.provider + " "+ session.user.email)
+
+    try {
+        await connection.query(query, values);
+
+        return {message: "Success!", status: 200};
+    } catch (error) {
+        console.error("saveSessionId error: ", error);
+        return { message: "saveSessionId failed", status: 400 };
+    } finally {
+        if (connection) connection.end();
+    }
+}
+
+
+export async function updateSessionInDB(email, sessionToken) {
+    const connection = await getConnection();
+    const query = "UPDATE userinfo SET sessionId = ? WHERE email = ?";
+    console.log("sessionToken : " + sessionToken)
+    console.log("email : " + email)
+  
+    try {
+      await connection.query(query, [sessionToken, email]);
+      console.log("Session updated in DB for email:",email);
+    } catch (error) {
+      console.error("Error updating session in DB:", error);
+      throw error;
+    } finally {
+      if (connection) await connection.end();
+    }
+}

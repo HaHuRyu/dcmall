@@ -5,11 +5,15 @@ export async function POST(req){
     try{
         const {searchText} = await req.json();
 
-        const res = searchRecom(searchText);
-        console.log("중간 점검: "+res.message+" // 스테이터스: "+res.status+ " // searchText: "+searchText);
+        const res = await searchRecom(searchText);
 
-        return NextResponse.json({ message : res.message}, {status: res.status});
+        if(res.status === 200){
+            return NextResponse.json({ message : res.message}, {status: res.status});
+        }else{
+            return NextResponse.json({ message : null}, {status: res.status});
+        }
     }catch(err){
         console.log("검색어 추천 서버 캐치!"+err);
+        return NextResponse.json({ message : null}, {status: res.status});
     }
 }

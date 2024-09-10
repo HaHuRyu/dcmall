@@ -9,23 +9,16 @@ export async function POST(req){
 
     if("threshold" in obj ){
         const cookieStore = cookies();
-        const nextSession = cookieStore.get('next-session');
-        let loginSession = null;
+        const nextSession = cookieStore.get('dcmall-session');
 
-        if (nextSession != null) {
-            const valueObj = JSON.parse(nextSession.value);
-            loginSession = valueObj.sessionID;
-        }
-
-        const rows = await selectUserId(loginSession);
-        
-        if(rows.length > 0){
-            const userNum = rows[0].num;
+        const num = await selectUserId(nextSession.value);
+        console.log("num : " + num)
+        if(num > 0){
             const {title, threshold} = obj;
-            emtext = getEmbedding(title, threshold, userNum);
+            emtext = getEmbedding(title, threshold, num);
         } else {
             const response = NextResponse.json({recommendations: "세션 변조 발생", check: 500});
-            response.cookies.set('next-session', '',{
+            response.cookies.set('dcmall-session', '',{
                 expires: new Date(0),
                 path: '/'
             });

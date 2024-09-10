@@ -34,7 +34,7 @@ export async function getEmbedding(text, threshold, num) {
   } else {
     const result = await supabase
     .from("notification")
-    .upsert({ num: num, embedding: embedding, threshold: threshold, title: text },
+    .upsert({ num: num, embedding: embedding, threshold: threshold, title:text },
             { onConflict: ['num'] }
     )
     .select();

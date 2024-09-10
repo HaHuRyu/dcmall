@@ -1,7 +1,7 @@
 "use client"
+import React, { useEffect } from "react";
 
 export default function KeyWord(){
-
     const handleSubmit = async (event) => {
         event.preventDefault();
     

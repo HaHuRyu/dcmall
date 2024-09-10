@@ -9,9 +9,9 @@ export async function POST(req) {
 
         console.log(result.message)
        
-        return NextResponse.json({ message: result.message }, { status: result.status });
+        return NextResponse.json({ message: result.message}, {status: result.status });
     } catch (error) {
         console.error("findPW error:", error);
-        return NextResponse.json({ message: "An error occurred findPw" }, { status: 500 });
+        return NextResponse.json({ message: "An error occurred findPw"}, {status: 500 });
     }
 }

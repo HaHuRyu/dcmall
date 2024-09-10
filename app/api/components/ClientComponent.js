@@ -5,11 +5,39 @@
 home.js는 서버 컴포넌트로서의 처리 쿠키에서 세션을 가져오는 처리를 맡고 있다.
 */
 import React, { useState, useEffect } from "react";
+import { InfScroll, InfScrollNoSearch, InfScrollProvider} from '../../util/infiniteScroll'
 
-export default function ClientComponent({ initialSession }) {
-  const [loginSession, setLoginSession] = useState(initialSession);
+export default function ClientComponent({ sessionCookie }) {
   const [searchWord, setSearchWord] = useState('');
   const [resultList, setResultList] = useState([]);
+  const [allProductList, setAllProductList] = useState([]);
+  const [renderTrigger, setRenderTrigger] = useState(false);
+  const [session, setSession] = useState(sessionCookie);
+
+  useEffect(() => {
+    setSession(sessionCookie);
+  }, [sessionCookie]);
+
+  const fetchAllProducts = async (e) => {
+    try{
+      const response = await fetch('/api/post/getAllProduct', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}), // 빈 객체를 전송합니다.
+      });
+
+      const data = await response.json();
+      const message = data.message;
+
+      if(response.status === 200){
+        setAllProductList(message);
+      }
+    }catch(err){
+      console.error("fetchAllProducts Error: "+err);
+    }
+  }
 
   const searchSubmit = async (e) => {
     e.preventDefault(); //아랫코드가 다 실행되고 나서 새로고침되는 것을 막는다
@@ -24,15 +52,28 @@ export default function ClientComponent({ initialSession }) {
         })
       });
 
-
       const data = await response.json();
       const recommandList = data.recommendations;
-
-      console.log("test"  + data.aaa);
-
       if(response.status === 200){
-        console.log(recommandList.length)
         setResultList(recommandList);
+        try{
+          const response = await fetch('/api/post/searchResLinking', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              searchText: recommandList
+            })
+          });
+
+          const data = await response.json();
+          if(response.status === 200){
+            await setResultList(data.message);
+          }
+        }catch(err){
+          console.log("searchResLinking Error: "+err);
+        }
       }else{
         alert("오류");
       }
@@ -43,89 +84,94 @@ export default function ClientComponent({ initialSession }) {
   };
 
   useEffect(() => {
-    setLoginSession(initialSession);
-  }, [initialSession]);
+    if (resultList === null || resultList.length === 0) {
+      fetchAllProducts().then(() => {
 
-  const hadleBlur = async(e) => {
-    try{
-      e.preventDefault();
-      const response = await fetch('/api/post/searchRecommand', {
-          method: 'POST',
-          headers: {
-            'Content-Type' : 'application/json'
-          },
-          body: JSON.stringify({
-            searchText: searchWord
-          })
-      });
-
-      const data = await response.json();
-
-      if(data.status === 200){
-        console.log("검색어 추천 성공!: "+data.message);
-      }else{
-        console.log("검색어 추천 실패!");
-      }
-    }catch(err){
-      console.log("검색어 추천 캐치"+err);
+        setRenderTrigger(true);
+    });
     }
-  }
+  }, [resultList]);
 
-  const handleSubmit = async (e) => {
+  const handleBlur = async (e) => { //자동완성 같은 기능
+    e.preventDefault();
     try {
-      e.preventDefault();
-      const response = await fetch('/api/post/logOut', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userSession: loginSession,
-        }),
-      });
+        const response = await fetch('/api/post/searchRecommand', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                searchText: searchWord
+            })
+        });
 
-      if (response.status === 200) {
-        window.location.href = '/';
-      }
-    } catch (error) {
-      console.error("로그아웃 오류!", error);
+        // 서버 응답을 JSON으로 변환
+        const data = await response.json();
+
+        if (response.status === 200) {
+        const titles = data.message.map(item => item.title);
+
+        console.log("제목 배열: " + JSON.stringify(titles));
+        } else {
+            console.log("검색어 추천 실패!");
+        }
+    } catch (err) {
+        console.log("검색어 추천 캐치: " + err);
     }
-  };
+}
+const handleSignOut = async (e) => {
+  e.preventDefault();
+  try{
+    const response = await fetch('/api/post/login/signOut', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        sessionCookie: session
+      })
+    });
+
+    const data = await response.json();
+    const message = data.message;
+    
+    alert(message);
+    window.location.reload();
+  }catch(err){
+    console.log("로그아웃 오류: "+err);
+  }
+}
+
   return (
     <div>
-      {loginSession == null ? (
-        <a href='/login/signIn'>
-          <button>로그인</button>
-        </a>
+      <a href="/"><p>Dcmall</p></a>
+      {!session ? (
+        <a href="/login/signIn"><button>로그인</button></a>
       ) : (
-        <div>
-          <form onSubmit={handleSubmit}>
-            <button type="submit">로그아웃</button>
-          </form>
-          <a href= "../login/deleteId"><button type="submit">아이디 삭제</button></a>
-        </div>    
+        <button onClick={handleSignOut}>로그아웃</button>
       )}
 
       <form onSubmit={searchSubmit}>
         <input 
         type="text"
         value={searchWord}
-        onBlur={hadleBlur}
+        onBlur={handleBlur}
         onChange={(e) => setSearchWord(e.target.value)}/>
         <button type="submit">검색하기</button>
       </form>
+      
+      {renderTrigger && (
+            resultList === null || resultList.length > 0 ? (
+                <InfScrollProvider>
+                    <InfScroll searchResults={resultList} />
+                </InfScrollProvider>
+            ) : (
+                <InfScrollProvider>
+                    <InfScrollNoSearch searchResults={allProductList} />
+                </InfScrollProvider>
+            )
+        )}
 
-      {resultList.length > 0 ? (
-        <ul>
-          {resultList.map((result, index) => (
-            <li key={index}>
-              {result.title}: {Number(result.similarity * 100).toFixed(2)}%
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>검색 결과가 없습니다.</p>
-      )}
     </div>
   );
 }

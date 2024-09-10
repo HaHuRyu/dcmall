@@ -1,5 +1,9 @@
-import Home from './api/components/home';
+import ClientComponent from './api/components/ClientComponent';
+import { cookies } from 'next/headers';
 
-export default function Page() {
-  return <Home />;
+export default async function Page() {
+  const cookieStore = cookies();
+  const sessionCookie = cookieStore.get('dcmall-session');
+
+  return <ClientComponent sessionCookie={sessionCookie ? sessionCookie.value : null} />;
 }
