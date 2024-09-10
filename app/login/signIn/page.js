@@ -1,45 +1,79 @@
 'use client'
-import React, { useState, useEffect } from 'react';
-import { useSession, signIn } from 'next-auth/react';
+import React, { useState } from 'react';
+import { GoogleLogin } from '@react-oauth/google';
+import { jwtDecode }from 'jwt-decode';
 
 export default function SignIn() {
-  const [sessionSynced, setSessionSynced] = useState(false);
-  const { data: session, status } = useSession();
+  const [id, setId] = useState('');
+  const [pw, setPw] = useState('');
 
-  useEffect(() => {
-    const syncSession = async () => {
-      if (session && status === "authenticated" && !sessionSynced) {
-        try {
-          const response = await fetch('/api/post/syncSession', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              email: session.user.email,
-              provider: session.provider,
-              sessionId: session.user.id
-            }),
-          });
-          if (response.ok) {
-            setSessionSynced(true);
-          } else {
-            console.error('세션 동기화 실패:', await response.text());
-          }
-        } catch (error) {
-          console.error('세션 동기화 오류:', error);
-        }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try{
+      const response = await fetch('/api/post/login/custom', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: id,
+          password: pw
+        })
+      });
+      const data = await response.json();
+      alert(data.message);
+
+      if(response.status === 200){
+        window.location.href = '/';
       }
-    };
-  
-    syncSession();
-  }, [session, status, sessionSynced]);
+    }
+    catch(error){
+      console.log("로그인 실패:", error);
+    }
+  }
+  const handleGoogleLoginSuccess = async (credentialResponse) => {
+    const decoded = jwtDecode(credentialResponse.credential);
+    const { email, name, picture, given_name, family_name, locale, sub } = decoded;
+
+    try {
+      const response = await fetch('/api/post/login/google', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          // email: decoded.email,
+          // name: decoded.name,
+          // picture: decoded.picture
+          email:email,
+          name: name,
+          picture: picture,
+          givenName: given_name,
+          familyName: family_name,
+          locale: locale,
+          googleId: sub
+        })
+      });
+
+      const data = await response.json();
+
+      if(response.status === 200){
+        alert(data.message);
+        window.location.href = '/';
+      }else if(response.status === 201){
+        sessionStorage.setItem('userEmail', email);
+        window.location.href = data.message;
+      }
+    } catch (error) {
+      console.log("구글 로그인 오류:", error);
+    }
+  }
 
   return (
     <div>
       <h4>dcmall</h4>
 
-      {!session ? ( //signIn안에 'google or credentials'로 지정해주면 문자열+Provider 방식의 로그인을 한다는 의미 문자열로 커스텀 구글을 나눈다
+      {/* {!session ? ( //signIn안에 'google or credentials'로 지정해주면 문자열+Provider 방식의 로그인을 한다는 의미 문자열로 커스텀 구글을 나눈다
         <>
           <button onClick={() => signIn('google', {redirect: false})}>구글 로그인</button>
           <form onSubmit={async (e) => {
@@ -58,16 +92,28 @@ export default function SignIn() {
         </>
       ) : (
         <button onClick={() => handleLogOut()}>로그아웃</button>
-      )}
+      )} */}
+
+  <GoogleLogin
+        onSuccess={handleGoogleLoginSuccess}
+        onError={() => {
+          console.log('구글 로그인 실패');
+        }}
+      />
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Email"
+          onChange={(e) => setId(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          onChange={(e) => setPw(e.target.value)}
+        />
+        <button type="submit">커스텀 로그인</button>
+      </form>
       
-      {session ? (
-        <div>
-          <p>Name: {session.user.name}</p>
-          <p>Email: {session.user.email}</p>
-        </div>
-      ) : (
-        <p>Please sign in to see your profile</p>
-      )}
 
       <a href="/login/join"><button>회원가입</button></a>
       <a href="/login/findID"><button>ID 찾기</button></a>

@@ -387,16 +387,12 @@ export async function searchRecom(searchText){
 
 export async function selectAllProduct(){
     const connection = await getConnection();
-    const query = "SELECT title,cost,url FROM dcmall.productinfo";
+    const query = "SELECT title,cost,url,id FROM dcmall.productinfo";
 
     try{
         const [result] = await connection.query(query);
         
         if(result.length > 0){
-            // const titles = result.map(result => result.title);
-            //  // JSON 객체로 변환
-            //  const response = { title: titles };
-
             return {message: result, status: 200 };
         }else{
             return {message: "selectAllProduct Failed", status: 400};
@@ -405,6 +401,26 @@ export async function selectAllProduct(){
         console.error("selectAllProduct 오류: "+err);
         return {message: "selectAllProduct Error", status:400};
     } finally{
+        if(connection) connection.end();
+    }
+}
+
+export async function perfectUrlByProductId(id){
+    const connection = await getConnection();
+    const query = "SELECT url FROM dcmall.site WHERE id = ?";
+
+    try{
+        const [result] = await connection.query(query, [id]);
+
+        if(result.length > 0){
+            return {message: result[0].url, status: 200};
+        }else{
+            return {message: "perfectUrlByProductId Failed", status: 400};
+        }
+    }catch(err){
+        console.error("perfectUrlByProductId 오류: "+err);
+        return {message: "perfectUrlByProductId Error", status: 400};
+    }finally{
         if(connection) connection.end();
     }
 }
@@ -430,24 +446,35 @@ export async function selectUserByGoogleEmail(email){   //240828 테스트 필�
     }
 }
 
-export async function setUserGoogleLogin(email, nick) {    //240828 테스트 필요!
+export async function setUserGoogleLogin(email, nick) { //트랙잭션을 통해 쓰레기 값이 생기는 걸 방지하자!
     const connection = await getConnection();
-    const query1 = "INSERT INTO user(id, password, signinType) VALUES (?, ?, ?)";
-    const findUserNum = "SELECT num FROM user WHERE id = ? && password = ?"
-    const query2 = "INSERT INTO userinfo(num, email, nickname) VALUES (?, ?, ?)";
-
+    
     try {
-        const userId = generateRandomString(10);  // 10자리의 난수 ID 생성
-        const userPw = generateRandomString(10);  // 10자리의 난수 PW 생성
+        await connection.beginTransaction(); // 트랜잭션 시작
 
-        await connection.query(query1, [userId, userPw, 1]);  //여기선 아이디와 비밀번호를 임의로 만들었지만 어찌 할지 추후 결정
-        let userNum = await connection.query(findUserNum, [userId, userPw]);
-        await connection.query(query2, [userNum[0][0].num, email, nick]);
+        const userId = generateRandomString(10);
+        const userPw = generateRandomString(10);
+
+        const query1 = "INSERT INTO user(id, password, signinType) VALUES (?, ?, ?)";
+        await connection.query(query1, [userId, userPw, 1]);
+
+        const findUserNum = "SELECT num FROM user WHERE id = ? && password = ?";
+        const [userNumResult] = await connection.query(findUserNum, [userId, userPw]);
+
+        if (userNumResult.length === 0) {
+            throw new Error("User number not found after insertion");
+        }
+
+        const query2 = "INSERT INTO userinfo(num, email, nickname) VALUES (?, ?, ?)";
+        await connection.query(query2, [userNumResult[0].num, email, nick]);
+
+        await connection.commit(); // 모든 쿼리가 성공적으로 실행되면 커밋
         return { message: "회원가입 성공!", status: 200 };
     } catch (error) {
-        console.error("setUserGoogleLogin error: ", error); // 구체적인 에러 메시지 출력
+        await connection.rollback(); // 오류 발생 시 롤백
+        console.error("setUserGoogleLogin error: ", error);
         return { message: "DataBase Query Error", status: 500 };
-    }finally {
+    } finally {
         if (connection) await connection.end();
     }
 }
@@ -505,6 +532,7 @@ export async function selectUserId(CookieSessionId){
         if(connection) connection.end();
     }
 }
+
 
 function idStringCheck(id){
     return /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(id);
