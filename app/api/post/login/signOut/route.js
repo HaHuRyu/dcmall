@@ -4,7 +4,6 @@ import { cookies } from "next/headers";
 
 export async function POST(req){
     const { sessionCookie } = await req.json();
-    console.log("sessionCookie in POST: "+sessionCookie);
 
     const result = await resetSessionId(sessionCookie);
 

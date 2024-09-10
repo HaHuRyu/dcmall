@@ -117,7 +117,10 @@ export function InfScrollNoSearch({ searchResults }) {
                     <React.Fragment key={index}>
                         {page.results.map(item => (
                             <li key={item.title} style={{ marginBottom: '20px' }}>
-                                {item.title}
+                                <a href={item.perfectUrl} target="_blank" rel="noopener noreferrer">
+                                    {item.title}
+                                </a>
+                                <p>가격: {item.cost}원</p>
                             </li>
                         ))}
                     </React.Fragment>

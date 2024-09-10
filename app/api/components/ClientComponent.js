@@ -16,7 +16,6 @@ export default function ClientComponent({ sessionCookie }) {
 
   useEffect(() => {
     setSession(sessionCookie);
-    console.log("sessionCookie: "+session);
   }, [sessionCookie]);
 
   const fetchAllProducts = async (e) => {
@@ -142,18 +141,7 @@ const handleSignOut = async (e) => {
         onChange={(e) => setSearchWord(e.target.value)}/>
         <button type="submit">검색하기</button>
       </form>
-
-      {/* {resultList.length > 0 ? (
-        <ul>
-          {resultList.map((result, index) => (
-            <li key={index}>
-              {result.title}: {Number(result.similarity * 100).toFixed(2)}%
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>검색 결과가 없습니다.</p>
-      )} */}
+      
       {renderTrigger && (
             resultList.length > 0 ? (
                 <InfScrollProvider>
