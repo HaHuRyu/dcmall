@@ -617,3 +617,30 @@ export async function updateSessionInDB(email, sessionToken) {
       if (connection) await connection.end();
     }
 }
+
+export async function saveToken(token, num) {
+    const connection = await getConnection();
+    const query = "INSERT INTO discord (num, checkword) VALUES (?, ?) ON DUPLICATE KEY UPDATE checkword = VALUES(checkword)";
+    try {
+        await connection.query(query, [num, token]);
+        console.log("Token saved in DB:", token);
+    } catch (error) {
+        console.error("Error saving token in DB:", error);
+    } finally {
+        if (connection) connection.end();
+    }
+}
+
+export async function certificationNotification(num) {
+    const connection = await getConnection();
+    const query = "SELECT user_num FROM notification WHERE user_num = ?";
+    try {
+        const [result] = await connection.query(query, [num]);
+        return result.length > 0;
+    } catch (error) {
+        console.error("Error certification discord:", error);
+        return false;
+    } finally {
+        if (connection) connection.end();
+    }
+}

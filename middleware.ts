@@ -24,10 +24,6 @@ export async function middleware(request: NextRequest){
         if (request.nextUrl.pathname.startsWith('/login')) {
             return NextResponse.redirect(new URL('/', request.url));
         }
-        if (request.nextUrl.pathname.startsWith('/keyword')) {
-            // 키워드 페이지에 대한 추가 검증이 필요하다면 여기에 로직을 추가
-            return NextResponse.next();
-        }
         return NextResponse.next();
     }
 
