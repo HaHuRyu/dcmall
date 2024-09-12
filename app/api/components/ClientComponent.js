@@ -69,7 +69,7 @@ export default function ClientComponent({ sessionCookie }) {
 
           const data = await response.json();
           if(response.status === 200){
-            await setResultList(data.message);
+            setResultList(data.message);
           }
         }catch(err){
           console.log("searchResLinking Error: "+err);

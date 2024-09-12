@@ -5,7 +5,7 @@ export async function createSession(email, registSession){
     const sessionId = uuidv4();
     const result = await registSession(email, sessionId);
     if(result.status === 200){
-        cookies().set('dcmall-session', sessionId, {
+        cookies().set('next-session', sessionId, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',

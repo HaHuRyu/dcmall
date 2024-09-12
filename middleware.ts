@@ -10,7 +10,7 @@ export const runtime = 'nodejs'
  */
 export async function middleware(request: NextRequest){
     const response = NextResponse.next();
-    const session = request.cookies.get('dcmall-session');
+    const session = request.cookies.get('next-session');
     
     if (!session && request.nextUrl.pathname.startsWith('/login')) {
         return response;

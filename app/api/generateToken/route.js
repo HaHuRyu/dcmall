@@ -6,7 +6,7 @@ import { cookies } from "next/headers";
 export async function GET() {
     try {
         const cookieStore = cookies();
-        const session = cookieStore.get('dcmall-session');
+        const session = cookieStore.get('next-session');
         
         if (!session) {
             return NextResponse.json({ error: "세션이 없습니다." }, { status: 401 });

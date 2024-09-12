@@ -8,7 +8,7 @@ export async function POST(req){
     const result = await resetSessionId(sessionCookie);
 
     if(result.status === 200){
-        cookies().delete('dcmall-session');
+        cookies().delete('next-session');
         return NextResponse.json({ message: "로그아웃 성공", status: result.status });
     }else{
         return NextResponse.json({ message: "로그아웃 실패", status: result.status });
