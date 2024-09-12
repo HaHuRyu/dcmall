@@ -13,6 +13,8 @@ export default function ClientComponent({ sessionCookie }) {
   const [allProductList, setAllProductList] = useState([]);
   const [renderTrigger, setRenderTrigger] = useState(false);
   const [session, setSession] = useState(sessionCookie);
+  const [suggestions, setSuggestions] = useState([]);
+
 
   useEffect(() => {
     setSession(sessionCookie);
@@ -142,6 +144,35 @@ const handleSignOut = async (e) => {
   }
 }
 
+const handleInputChange = async (e) => {
+  const value = e.target.value;
+  setSearchWord(value);
+
+  if (value.length > 0) {
+    try {
+      const response = await fetch('/api/post/searchRecommand', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          searchText: value
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.status === 200) {
+        setSuggestions(data.message.map(item => item.title));
+      }
+    } catch (err) {
+      console.log("검색어 추천 오류: " + err);
+    }
+  } else {
+    setSuggestions([]);
+  }
+};
+
   return (
     <div>
       <a href="/"><p>Dcmall</p></a>
@@ -151,12 +182,41 @@ const handleSignOut = async (e) => {
         <button onClick={handleSignOut}>로그아웃</button>
       )}
 
-      <form onSubmit={searchSubmit}>
-        <input 
-        type="text"
-        value={searchWord}
-        onBlur={handleBlur}
-        onChange={(e) => setSearchWord(e.target.value)}/>
+<form onSubmit={searchSubmit}>
+        <div style={{ position: 'relative' }}>
+          <input 
+            type="text"
+            value={searchWord}
+            onChange={handleInputChange}
+            onBlur={() => setTimeout(() => setSuggestions([]), 200)}
+          />
+          {suggestions.length > 0 && (
+            <ul style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              width: '100%',
+              listStyle: 'none',
+              margin: 0,
+              padding: 0,
+              border: '1px solid #ccc',
+              backgroundColor: 'white'
+            }}>
+              {suggestions.map((suggestion, index) => (
+                <li 
+                  key={index}
+                  onClick={() => {
+                    setSearchWord(suggestion);
+                    setSuggestions([]);
+                  }}
+                  style={{ padding: '5px 10px', cursor: 'pointer' }}
+                >
+                  {suggestion}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         <button type="submit">검색하기</button>
       </form>
       
