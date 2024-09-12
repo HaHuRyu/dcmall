@@ -146,9 +146,12 @@ const handleSignOut = async (e) => {
     <div>
       <a href="/"><p>Dcmall</p></a>
       {!session ? (
-        <a href="/login/signIn"><button>로그인</button></a>
+          <a href="/login/signIn"><button>로그인</button></a>
       ) : (
-        <button onClick={handleSignOut}>로그아웃</button>
+        <div>
+          <button onClick={handleSignOut}>로그아웃</button>
+          <a href="/mypage"><button>마이페이지</button></a>
+        </div>
       )}
 
       <form onSubmit={searchSubmit}>

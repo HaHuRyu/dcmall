@@ -73,28 +73,7 @@ export default function SignIn() {
     <div>
       <h4>dcmall</h4>
 
-      {/* {!session ? ( //signIn안에 'google or credentials'로 지정해주면 문자열+Provider 방식의 로그인을 한다는 의미 문자열로 커스텀 구글을 나눈다
-        <>
-          <button onClick={() => signIn('google', {redirect: false})}>구글 로그인</button>
-          <form onSubmit={async (e) => {
-            e.preventDefault();
-            const email = e.target.email.value;
-            const password = e.target.password.value;
-            const result = await signIn('credentials', { redirect: false, email, password }); //Credentials(커스텀 로그인)에 로그인을 요청 리다이렉트 금지, email, password를 authorize에 보낸다.
-            if (result?.error) {
-              console.log("커스텀 로그인 실패:", result.error);
-            }
-          }}>
-            <input name="email" type="text" placeholder="Email" />
-            <input name="password" type="password" placeholder="Password" />
-            <button type="submit">커스텀 로그인</button>
-          </form>
-        </>
-      ) : (
-        <button onClick={() => handleLogOut()}>로그아웃</button>
-      )} */}
-
-  <GoogleLogin
+      <GoogleLogin
         onSuccess={handleGoogleLoginSuccess}
         onError={() => {
           console.log('구글 로그인 실패');

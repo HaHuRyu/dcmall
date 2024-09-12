@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react';
-import { XSS_Sanitize } from '../util/xssSanitize'; //xss부분 다시 생각해보기 06-02
+import { XSS_Sanitize } from '../../util/xssSanitize'; //xss부분 다시 생각해보기 06-02
 import { useSearchParams } from 'next/navigation';
 //토큰을 넘겨받고 토큰 관리 부분이 없는 것 같은데 확인 부탁
 export default function ResetPassword() {

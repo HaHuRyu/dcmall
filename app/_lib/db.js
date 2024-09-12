@@ -631,6 +631,35 @@ export async function saveToken(token, num) {
     }
 }
 
+export async function selectSignInMethod(sessionId){
+    const connection = await getConnection();
+    const query = "SELECT signinType FROM dcmall.user WHERE num = (SELECT num FROM dcmall.userinfo WHERE sessionId = ?)"
+
+    try{
+        const [result] = await connection.query(query, [sessionId]);    //왜 결과가 안 나오지?
+        return result[0].signinType;
+    }catch(err){
+        console.error("selectSignInMethod error: ", err);
+        return null;
+    }finally{
+        if(connection) connection.end();
+    }
+}
+
+export async function selectuserinfoByNum(num){
+    const connection = await getConnection();
+    const query = "SELECT * FROM dcmall.userinfo WHERE num = ?";
+    try{
+        const [result] = await connection.query(query, [num]);
+        return result[0];
+    }catch(err){
+        console.error("selectuserinfoByNum error: ", err);
+        return null;
+    }finally{
+        if(connection) connection.end();
+    }
+}
+
 export async function certificationNotification(num) {
     const connection = await getConnection();
     const query = "SELECT user_num FROM notification WHERE user_num = ?";
