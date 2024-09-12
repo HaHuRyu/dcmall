@@ -1,4 +1,4 @@
-import {QueryClient, QueryClientProvider, useInfiniteQuery} from 'react-query';
+import {QueryClient, QueryClientProvider, useInfiniteQuery, useQueryClient} from 'react-query';
 import { dehydrate } from 'react-query/hydration';
 import React, { useRef, useEffect } from 'react';
 
@@ -17,21 +17,30 @@ export function InfScrollProvider({ children }){
 }
 
 export function InfScroll({ searchResults }) {
-    console.log("아이씨: ", JSON.stringify(searchResults));
+    const queryClient = useQueryClient();
+
     const {
         data,
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
+        refetch
     } = useInfiniteQuery(
-        'searchResult',
+        ['searchResult', searchResults], // 쿼리 키에 searchResults 추가
         ({ pageParam = 1 }) => fetchSearchResults({ pageParam }, searchResults),
         {
             getNextPageParam: (lastPage) => lastPage.nextPage ?? undefined,
+            enabled: !!searchResults, // searchResults가 있을 때만 쿼리 실행
         }
     );
 
     const loaderRef = useRef();
+
+    useEffect(() => {
+        // searchResults가 변경될 때마다 쿼리 초기화 및 재실행
+        queryClient.resetQueries(['searchResult', searchResults]);
+        refetch();
+    }, [searchResults, queryClient, refetch]);
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -54,10 +63,12 @@ export function InfScroll({ searchResults }) {
         };
     }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
+    if (!data) return <div>로딩 중...</div>;
+
     return (
         <div className="scroll-container" style={{ minHeight: '100vh', overflowY: 'auto' }}>
             <ul style={{ listStyleType: 'none', padding: 0 }}>
-                {data?.pages.map((page, index) => (
+                {data.pages.map((page, index) => (
                     <React.Fragment key={index}>
                         {page.results.map(item => (
                             <li key={item.title} style={{ marginBottom: '20px' }}>
@@ -71,7 +82,7 @@ export function InfScroll({ searchResults }) {
                 ))}
             </ul>
             <div ref={loaderRef} style={{ height: '100px', background: 'transparent' }}></div>
-            {isFetchingNextPage && <p>Loading more...</p>}
+            {isFetchingNextPage && <p>더 불러오는 중...</p>}
         </div>
     );
 }
