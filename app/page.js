@@ -5,5 +5,9 @@ export default async function Page() {
   const cookieStore = cookies();
   const sessionCookie = cookieStore.get('next-session');
 
-  return <ClientComponent sessionCookie={sessionCookie ? sessionCookie.value : null} />;
+  return (
+    <ClientComponent 
+      sessionCookie={sessionCookie ? sessionCookie.value : null} 
+    />
+  );
 }
