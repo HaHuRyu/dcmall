@@ -1,5 +1,6 @@
 'use client'
 import { useSearchParams } from 'next/navigation';
+import { useState } from 'react';
 export default function Withdraw(){
     const [id, setId] = useState('');
     const [pw, setPw] = useState('');
@@ -7,11 +8,10 @@ export default function Withdraw(){
     const searchParams = useSearchParams();
     const type = searchParams.get('type');
 
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         try{
-            const response = await fetch('/api/post/withdraw', {
+            const response = await fetch('/api/post/mypage/withdraw', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -37,7 +37,8 @@ export default function Withdraw(){
     return(
         <div>
             <h1>회원탈퇴 페이지</h1>
-            {type === 0 ? (
+            <h1>{type}</h1>
+            {(type == 0) ? (
                 <div>
                     <p1>아이디: </p1>
                     <input type="text" value={id} onChange={(e) => setId(e.target.value)}/>

@@ -2,7 +2,11 @@
 import React, { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode }from 'jwt-decode';
-
+/*
+24-09-14 추가사항:
+이메일을 unique로 만든 이상 이메일이 중복 값을 가질 수 없으니
+이런 경우 회원가입을 거부해야한다.
+*/
 export default function SignIn() {
   const [id, setId] = useState('');
   const [pw, setPw] = useState('');
