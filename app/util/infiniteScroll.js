@@ -72,6 +72,13 @@ export function InfScroll({ searchResults }) {
                     <React.Fragment key={index}>
                         {page.results.map(item => (
                             <li key={item.title} style={{ marginBottom: '20px' }}>
+                                <div>
+                                    {item.imageUrl === "no data" ? (
+                                        <img src="https://storage.googleapis.com/dcmall/noData/9482213.png" alt="대체 이미지" width={160} height={160}/>
+                                    ) : (
+                                        <img src={item.imageUrl} alt={item.title} width={160} height={160}/>
+                                    )}
+                                </div>
                                 <a href={item.perfectUrl} target="_blank" rel="noopener noreferrer">
                                     {item.title} - 유사도: {Number(item.similarity * 100).toFixed(2)}%
                                 </a>
@@ -131,6 +138,13 @@ export function InfScrollNoSearch({ searchResults }) {
                     <React.Fragment key={index}>
                         {page.results.map(item => (
                             <li key={item.title} style={{ marginBottom: '20px' }}>
+                                <div>
+                                    {item.imageUrl === "no data" ? (
+                                        <img src="https://storage.googleapis.com/dcmall/noData/9482213.png" alt="대체 이미지" width={160} height={160}/>
+                                    ) : (
+                                        <img src={item.imageUrl} alt={item.title} width={160} height={160}/>
+                                    )}
+                                </div>
                                 <a href={item.perfectUrl} target="_blank" rel="noopener noreferrer">
                                     {item.title}
                                 </a>

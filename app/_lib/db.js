@@ -392,6 +392,7 @@ export async function selectAllProduct(){
     const connection = await getConnection();
     const query = `
     SELECT 
+        dcmall.productinfo.imageUrl AS imageUrl,
         dcmall.productinfo.title AS title, 
         dcmall.productinfo.cost AS cost, 
         CONCAT(dcmall.site.url, dcmall.productinfo.url) AS perfectUrl 
@@ -545,6 +546,7 @@ export async function searchLinking(searchTexts) {
         const conditions = titles.map(() => 'dcmall.productinfo.title = ?').join(' OR ');
         const query = `
         SELECT
+            dcmall.productinfo.imageUrl AS imageUrl,
             dcmall.productinfo.title AS title,
             dcmall.productinfo.cost AS cost,
             CONCAT(dcmall.site.url, dcmall.productinfo.url) AS perfectUrl
