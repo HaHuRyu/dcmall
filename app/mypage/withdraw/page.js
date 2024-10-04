@@ -37,7 +37,6 @@ export default function Withdraw(){
     return(
         <div>
             <h1>회원탈퇴 페이지</h1>
-            <h1>{type}</h1>
             {(type == 0) ? (
                 <div>
                     <p1>아이디: </p1>

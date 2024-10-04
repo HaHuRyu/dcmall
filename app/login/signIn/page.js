@@ -29,6 +29,7 @@ export default function SignIn() {
 
       if(response.status === 200){
         window.location.href = '/';
+        sessionStorage.setItem('usernick', data.user);
       }
     }
     catch(error){
@@ -64,6 +65,7 @@ export default function SignIn() {
       if(response.status === 200){
         alert(data.message);
         window.location.href = '/';
+        sessionStorage.setItem('usernick', data.user);
       }else if(response.status === 201){
         sessionStorage.setItem('userEmail', email);
         window.location.href = data.message;

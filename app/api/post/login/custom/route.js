@@ -1,6 +1,6 @@
 import {NextResponse} from "next/server"
-import {queryDatabase, updateSessionId} from "../../../../_lib/db"
-import {password_check, password_salt} from "../../../../_lib/salt"
+import {queryDatabase, updateSessionId, selectCustomUser} from "../../../../_lib/db"
+import {password_check} from "../../../../_lib/salt"
 import { createSession } from '../../../../util/createSession';
 
 export async function POST(req){
@@ -8,6 +8,8 @@ export async function POST(req){
     console.log("들어온 값: "+email+" "+password);
     
     const user = await queryDatabase(email);
+    const userNick = await selectCustomUser(email);
+
     if(!user){
         return NextResponse.json({message : "존재하지 않는 이메일입니다."}, {status : 404});
     }
@@ -20,7 +22,7 @@ export async function POST(req){
     }else{
         try{
             await createSession(email, updateSessionId);
-            return NextResponse.json({message : "로그인 성공!"}, {status : 200});
+            return NextResponse.json({message : "로그인 성공!", user: userNick.user.nickname}, {status : 200});
         }catch(err){
             console.error("커스텀 로그인 세션 생성 중 오류:", err);
             return NextResponse.json({ message: '커스텀 로그인 세션 생성 중 오류' }, { status: 500 });

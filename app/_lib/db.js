@@ -748,6 +748,26 @@ export async function updateEmail(email_token, oldEmail, newEmail){
     }
 }
 
+export async function selectCustomUser(id){
+    const connection = await getConnection();
+    const query = "SELECT * FROM userinfo WHERE num = (SELECT num FROM user WHERE id = ?)";
+
+    try{
+        const [result] = await connection.query(query, [id]);
+
+        if(result.length > 0){
+            return {message: '유저 찾음', user: result[0], status: 200};
+        }else{
+            return {message: '유저 못 찾음', status: 201};
+        }
+    }catch(err){
+        console.error("selectCustomUser error: ",err);
+        return {message: "selectCustomUser error", status: 500};
+    }finally{
+        if(connection) connection.end();
+    }
+}
+
 export async function certificationNotification(num) {
     const connection = await getConnection();
     const query = "SELECT user_num FROM notification WHERE user_num = ?";
