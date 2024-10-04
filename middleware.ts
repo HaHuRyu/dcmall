@@ -20,11 +20,15 @@ export async function middleware(request: NextRequest){
 
     
     if(session){
+        // if(request.nextUrl.pathname.startsWith('/login/reset-password')){
+        //     return NextResponse.next();
+        // }
         // 세션이 있는 경우의 로직
         if (request.nextUrl.pathname.startsWith('/login')) {
             return NextResponse.redirect(new URL('/', request.url));
         }
-        return NextResponse.next();
+        else 
+            return NextResponse.next();
     }
 
 }

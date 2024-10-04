@@ -7,7 +7,7 @@ export async function POST(req){
     const obj = await req.json();
     let emtext;
 
-    if("threshold" in obj ){
+    if("threshold" in obj ){    //:threshold가 어디에 포함된 거지?
         const cookieStore = cookies();
         const nextSession = cookieStore.get('next-session');
 

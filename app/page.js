@@ -1,88 +1,40 @@
+"use client";
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+
 export default function Page() {
-  const [loginSession, setLoginSession] = useState(initialSession);
-  const [searchWord, setSearchWord] = useState('');
   const [resultList, setResultList] = useState([]);
-
-  const searchSubmit = async (e) => {
-    e.preventDefault(); //아랫코드가 다 실행되고 나서 새로고침되는 것을 막는다
-    try{
-      const response = await fetch('/api/post/embedding', {
-        method: 'POST',
-        headers: {
-          'Content-Type' : 'application/json'
-        },
-        body: JSON.stringify({
-          searchText: searchWord
-        })
-      });
-
-
-      const data = await response.json();
-      const recommandList = data.recommendations;
-
-      console.log("test"  + data.aaa);
-
-      if(response.status === 200){
-        console.log(recommandList.length)
-        setResultList(recommandList);
-      }else{
-        alert("오류");
-      }
-      
-    }catch(error){
-      console.log("search fetch Error: "+error);
-    }
-  };
+  const searchParams = useSearchParams();
+  const searchWord = searchParams.get('search');
 
   useEffect(() => {
-    setLoginSession(initialSession);
-  }, [initialSession]);
+    if (searchWord) {
+      const fetchSearchResults = async () => {
+        try {
+          const response = await fetch('/api/post/embedding', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ searchText: searchWord })
+          });
 
-  const hadleBlur = async(e) => {
-    try{
-      e.preventDefault();
-      const response = await fetch('/api/post/searchRecommand', {
-          method: 'POST',
-          headers: {
-            'Content-Type' : 'application/json'
-          },
-          body: JSON.stringify({
-            searchText: searchWord
-          })
-      });
+          const data = await response.json();
 
-      const data = await response.json();
+          if (response.ok) {
+            setResultList(data.recommendations);
+          } else {
+            console.error("Error fetching recommendations: ", data);
+          }
+        } catch (error) {
+          console.error("Search fetch error: ", error);
+        }
+      };
 
-      if(data.status === 200){
-        console.log("검색어 추천 성공!: "+data.message);
-      }else{
-        console.log("검색어 추천 실패!");
-      }
-    }catch(err){
-      console.log("검색어 추천 캐치"+err);
+      fetchSearchResults();
     }
-  }
+  }, [searchWord]);
 
-  const handleSubmit = async (e) => {
-    try {
-      e.preventDefault();
-      const response = await fetch('/api/post/logOut', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userSession: loginSession,
-        }),
-      });
-
-      if (response.status === 200) {
-        window.location.href = '/';
-      }
-    } catch (error) {
-      console.error("로그아웃 오류!", error);
-    }
-  };
   return (
     <div>
       <h1>Welcome to Dcmall</h1>

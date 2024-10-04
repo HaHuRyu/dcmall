@@ -187,7 +187,7 @@ export async function writeEmailToken(id, email){    //비밀번호 찾기가 �
         
         return { email_token : email_token, email : userEmail[0].email, status: 200}
     }catch (error) {
-        console.error("findPw error: ", error);
+        console.error("writeEmailToken error: ", error);
         return { message: "아이디나 이메일을 확인해주세요", status: 400 };
     }finally{
         if(connection) await connection.end();
@@ -211,7 +211,7 @@ export async function updatePassword(email_token){ //240828 테스트 필요!
                 await connection.query(updateTokenQuery, [token, expiry, userNum[0].num]);
         
                 // 리셋 링크 생성
-                const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+                const resetLink = `https://localhost:3001/login/reset-password?token=${token}`;
         
                 return { message: resetLink, status: 200 };
             }
@@ -392,6 +392,7 @@ export async function selectAllProduct(){
     const connection = await getConnection();
     const query = `
     SELECT 
+        dcmall.productinfo.imageUrl AS imageUrl,
         dcmall.productinfo.title AS title, 
         dcmall.productinfo.cost AS cost, 
         CONCAT(dcmall.site.url, dcmall.productinfo.url) AS perfectUrl 
@@ -545,6 +546,7 @@ export async function searchLinking(searchTexts) {
         const conditions = titles.map(() => 'dcmall.productinfo.title = ?').join(' OR ');
         const query = `
         SELECT
+            dcmall.productinfo.imageUrl AS imageUrl,
             dcmall.productinfo.title AS title,
             dcmall.productinfo.cost AS cost,
             CONCAT(dcmall.site.url, dcmall.productinfo.url) AS perfectUrl
@@ -628,6 +630,141 @@ export async function saveToken(token, num) {
         console.error("Error saving token in DB:", error);
     } finally {
         if (connection) connection.end();
+    }
+}
+
+export async function selectSignInMethod(sessionId){
+    const connection = await getConnection();
+    const query = "SELECT signinType FROM dcmall.user WHERE num = (SELECT num FROM dcmall.userinfo WHERE sessionId = ?)"
+
+    try{
+        const [result] = await connection.query(query, [sessionId]);    //왜 결과가 안 나오지?
+        return result[0].signinType;
+    }catch(err){
+        console.error("selectSignInMethod error: ", err);
+        return null;
+    }finally{
+        if(connection) connection.end();
+    }
+}
+
+export async function selectuserinfoByNum(num){
+    const connection = await getConnection();
+    const query = "SELECT * FROM dcmall.userinfo WHERE num = ?";
+    try{
+        const [result] = await connection.query(query, [num]);
+        console.log("selectuserinfoByNum result:", result[0]); // 로그 추가
+        return result[0];
+    }catch(err){
+        console.error("selectuserinfoByNum error: ", err);
+        return null;
+    }finally{
+        if(connection) connection.end();
+    }
+}
+
+export async function deleteCustomUser(num){
+    const connection = await getConnection();
+    const userQuery = "DELETE FROM dcmall.user WHERE num = ?";
+    const userinfoQuery = "DELETE FROM dcmall.userinfo WHERE num = ?";
+    try{
+        await connection.query(userQuery, [num]);
+        await connection.query(userinfoQuery, [num]);
+        return {message: "회원탈퇴 성공", status: 200};
+    }catch(err){
+        console.error("deleteCustomUser error: ", err);
+        return {message: "회원탈퇴 실패", status: 400};
+    }finally{
+        if(connection) connection.end();
+    }
+}
+
+export async function deleteGoogleUser(email){
+    const connection = await getConnection();
+    const numQuery = "SELECT num FROM dcmall.userinfo WHERE email = ?";
+    const userQuery = "DELETE FROM dcmall.user WHERE num = ?";
+    const userinfoQuery = "DELETE FROM dcmall.userinfo WHERE num = ?";
+    try{
+        const [result] = await connection.query(numQuery, [email]);
+        const num = result[0].num;
+        await connection.query(userQuery, [num]);
+        await connection.query(userinfoQuery, [num]);
+        return {message: "구글 회원탈퇴 성공", status: 200};
+    }catch(err){
+        console.error("deleteGoogleUser error: ", err);
+        return {message: "구글 회원탈퇴 실패", status: 400};
+    }finally{
+        if(connection) connection.end();
+    }
+
+}
+
+export async function checkPasswordBySessionId(sessionId){
+    const connection = await getConnection();
+    const query = "SELECT * FROM user WHERE num = (SELECT num FROM userinfo WHERE sessionId = ?)";
+    try{
+        const [result] = await connection.query(query, [sessionId]);
+        return result[0];
+    }catch(err){
+        console.error("checkPasswordBySessionId error: ", err);
+        return null;
+    }finally{
+        if(connection) connection.end();
+    }
+}
+
+export async function mypageResetPassword(num, newPw){
+    const connection = await getConnection();
+    const query = "UPDATE user SET password = ? WHERE num = ?";
+    try{
+        await connection.query(query, [newPw, num]);
+        return {message: "비밀번호 변경 성공", status: 200};
+    }catch(err){
+        console.error("mypageResetPassword error: ", err);
+        return {message: "비밀번호 변경 실패", status: 400};
+    }
+}
+
+export async function updateEmail(email_token, oldEmail, newEmail){
+    const connection = await getConnection();
+    const checkQuery = "SELECT email FROM userinfo WHERE email_token = ?"
+    const updateQuery = "UPDATE userinfo SET email = ? WHERE email = ?"
+    try{
+        const [result] = await connection.query(checkQuery, [email_token]);
+        if(result.length === 0) {
+            return {message: "유효하지 않은 이메일 토큰입니다.", status: 400};
+        }
+        if(result[0].email == oldEmail){
+            await connection.query(updateQuery, [newEmail, oldEmail]);
+            return {message: "이메일 변경 성공", status: 200};
+        } else {
+            return {message: "이메일 정보가 일치하지 않습니다.", status: 400};
+        }
+    }catch(err){
+        console.error("updateEmail error: ", err);
+        return {message: "이메일 변경 실패", status: 500};
+    }finally{
+        if(connection) connection.end();
+    }
+}
+
+export async function selectCustomUser(id){
+    const connection = await getConnection();
+    const query = "SELECT * FROM userinfo WHERE num = (SELECT num FROM user WHERE id = ?)";
+
+    try{
+        const [result] = await connection.query(query, [id]);
+
+        if(result.length > 0){
+            return {message: '유저 찾음', user: result[0], status: 200};
+        }else{
+            return {message: '유저 못 찾음', status: 201};
+        }
+    }catch(err){
+        console.error("selectCustomUser error: ",err);
+        return {message: "selectCustomUser error", status: 500};
+    }finally{
+        if(connection) connection.end();
     }
 }
 

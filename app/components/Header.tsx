@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 interface HeaderProps {
   sessionCookie: string | null;
@@ -12,8 +12,9 @@ const Header: React.FC<HeaderProps> = ({ sessionCookie }) => {
   const [searchWord, setSearchWord] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const pathname = usePathname();
+  const router = useRouter();
 
-  const isLoginPage = pathname?.startsWith('/login');
+  const isLoginPage = pathname?.startsWith('/login') || false;
 
   const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -40,6 +41,11 @@ const Header: React.FC<HeaderProps> = ({ sessionCookie }) => {
     }
   };
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    router.push(`/?search=${encodeURIComponent(searchWord)}`);
+  };
+
   const handleSignOut = async () => {
     try {
       const response = await fetch('/api/post/login/signOut', {
@@ -58,54 +64,58 @@ const Header: React.FC<HeaderProps> = ({ sessionCookie }) => {
   };
 
   return (
-    <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem' }}>
-      <Link href="/"><h1>Dcmall</h1></Link>
-      {!isLoginPage && (
-        <form onSubmit={(e) => { e.preventDefault(); /* 검색 로직 구현 */ }} style={{ position: 'relative', flexGrow: 1, margin: '0 1rem' }}>
-          <input
-            type="text"
-            value={searchWord}
-            onChange={handleInputChange}
-            placeholder="검색어를 입력하세요"
-            style={{ width: '100%', padding: '0.5rem' }}
-          />
-          <button type="submit" style={{ position: 'absolute', right: 0, top: 0, height: '100%' }}>검색하기</button>
-          {suggestions.length > 0 && (
-            <ul style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              width: '100%',
-              listStyle: 'none',
-              margin: 0,
-              padding: 0,
-              border: '1px solid #ccc',
-              backgroundColor: 'white',
-              zIndex: 1000
-            }}>
-              {suggestions.map((suggestion, index) => (
-                <li 
-                  key={index}
-                  onClick={() => {
-                    setSearchWord(suggestion);
-                    setSuggestions([]);
-                  }}
-                  style={{ padding: '5px 10px', cursor: 'pointer' }}
-                >
-                  {suggestion}
-                </li>
-              ))}
-            </ul>
-          )}
-        </form>
-      )}
-      {!isLoginPage && (
-        !session ? (
-          <Link href="/login/signIn"><button>로그인</button></Link>
-        ) : (
-          <button onClick={handleSignOut}>로그아웃</button>
-        )
-      )}
+    <header style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+        <Link href="/">
+          <h1>Dcmall</h1>
+        </Link>
+        {!isLoginPage && (
+          <form onSubmit={handleSearchSubmit} style={{ position: 'relative', flexGrow: 1, margin: '0 1rem' }}>
+            <input
+              type="text"
+              value={searchWord}
+              onChange={handleInputChange}
+              placeholder="검색어를 입력하세요"
+              style={{ width: '100%', padding: '0.5rem' }}
+            />
+            <button type="submit" style={{ position: 'absolute', right: 0, top: 0, height: '100%' }}>검색하기</button>
+            {suggestions.length > 0 && (
+              <ul style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                width: '100%',
+                listStyle: 'none',
+                margin: 0,
+                padding: 0,
+                border: '1px solid #ccc',
+                backgroundColor: 'white',
+                zIndex: 1000
+              }}>
+                {suggestions.map((suggestion, index) => (
+                  <li
+                    key={index}
+                    onClick={() => {
+                      setSearchWord(suggestion);
+                      setSuggestions([]);
+                    }}
+                    style={{ padding: '5px 10px', cursor: 'pointer' }}
+                  >
+                    {suggestion}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </form>
+        )}
+        {!isLoginPage && (
+          !session ? (
+            <Link href="/login/signIn"><button>로그인</button></Link>
+          ) : (
+            <button onClick={handleSignOut}>로그아웃</button>
+          )
+        )}
+      </div>
     </header>
   );
 };

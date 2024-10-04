@@ -2,7 +2,11 @@
 import React, { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode }from 'jwt-decode';
-
+/*
+24-09-14 추가사항:
+이메일을 unique로 만든 이상 이메일이 중복 값을 가질 수 없으니
+이런 경우 회원가입을 거부해야한다.
+*/
 export default function SignIn() {
   const [id, setId] = useState('');
   const [pw, setPw] = useState('');
@@ -25,6 +29,7 @@ export default function SignIn() {
 
       if(response.status === 200){
         window.location.href = '/';
+        sessionStorage.setItem('usernick', data.user);
       }
     }
     catch(error){
@@ -60,6 +65,7 @@ export default function SignIn() {
       if(response.status === 200){
         alert(data.message);
         window.location.href = '/';
+        sessionStorage.setItem('usernick', data.user);
       }else if(response.status === 201){
         sessionStorage.setItem('userEmail', email);
         window.location.href = data.message;
@@ -73,28 +79,7 @@ export default function SignIn() {
     <div>
       <h4>dcmall</h4>
 
-      {/* {!session ? ( //signIn안에 'google or credentials'로 지정해주면 문자열+Provider 방식의 로그인을 한다는 의미 문자열로 커스텀 구글을 나눈다
-        <>
-          <button onClick={() => signIn('google', {redirect: false})}>구글 로그인</button>
-          <form onSubmit={async (e) => {
-            e.preventDefault();
-            const email = e.target.email.value;
-            const password = e.target.password.value;
-            const result = await signIn('credentials', { redirect: false, email, password }); //Credentials(커스텀 로그인)에 로그인을 요청 리다이렉트 금지, email, password를 authorize에 보낸다.
-            if (result?.error) {
-              console.log("커스텀 로그인 실패:", result.error);
-            }
-          }}>
-            <input name="email" type="text" placeholder="Email" />
-            <input name="password" type="password" placeholder="Password" />
-            <button type="submit">커스텀 로그인</button>
-          </form>
-        </>
-      ) : (
-        <button onClick={() => handleLogOut()}>로그아웃</button>
-      )} */}
-
-  <GoogleLogin
+      <GoogleLogin
         onSuccess={handleGoogleLoginSuccess}
         onError={() => {
           console.log('구글 로그인 실패');

@@ -7,10 +7,11 @@ export async function POST(req) {
 
   try {
     const existingUser = await selectUserByGoogleEmail(email);
+
     if(existingUser.status === 200){
       try{
         await createSession(email, updateSessionByGoogleEmail);
-        return NextResponse.json({ message: '구글 로그인 성공', user: existingUser }, { status: 200 });
+        return NextResponse.json({ message: '구글 로그인 성공', user: existingUser.nickname }, { status: 200 });
       }catch(err){
           console.error("구글 로그인 세션 생성 중 오류:", err);
           return NextResponse.json({ message: '구글 로그인 세션 생성 중 오류' }, { status: 500 });
