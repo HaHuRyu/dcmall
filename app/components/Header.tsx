@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -15,6 +15,24 @@ const Header: React.FC<HeaderProps> = ({ sessionCookie }) => {
   const router = useRouter();
 
   const isLoginPage = pathname?.startsWith('/login') || false;
+
+  // 검색 폼을 참조하기 위한 useRef 생성
+  const formRef = useRef<HTMLFormElement>(null);
+
+  // 컴포넌트가 마운트될 때 클릭 이벤트 리스너 추가
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (formRef.current && !formRef.current.contains(event.target as Node)) {
+        setSuggestions([]);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      // 컴포넌트가 언마운트될 때 이벤트 리스너 제거
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -43,6 +61,8 @@ const Header: React.FC<HeaderProps> = ({ sessionCookie }) => {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // 검색 제출 시 추천 목록 초기화
+    setSuggestions([]);
     router.push(`/?search=${encodeURIComponent(searchWord)}`);
   };
 
@@ -70,7 +90,8 @@ const Header: React.FC<HeaderProps> = ({ sessionCookie }) => {
           <h1>Dcmall</h1>
         </Link>
         {!isLoginPage && (
-          <form onSubmit={handleSearchSubmit} style={{ position: 'relative', flexGrow: 1, margin: '0 1rem' }}>
+          // formRef를 폼 요소에 추가
+          <form ref={formRef} onSubmit={handleSearchSubmit} style={{ position: 'relative', flexGrow: 1, margin: '0 1rem' }}>
             <input
               type="text"
               value={searchWord}
@@ -112,7 +133,10 @@ const Header: React.FC<HeaderProps> = ({ sessionCookie }) => {
           !session ? (
             <Link href="/login/signIn"><button>로그인</button></Link>
           ) : (
-            <button onClick={handleSignOut}>로그아웃</button>
+            <div>
+              <button onClick={handleSignOut}>로그아웃</button>
+              <a href="/mypage"><button>마이페이지</button></a>
+            </div>
           )
         )}
       </div>
