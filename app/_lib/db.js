@@ -392,6 +392,7 @@ export async function selectAllProduct(){
     const connection = await getConnection();
     const query = `
     SELECT 
+        dcmall.productinfo.postid AS id,
         dcmall.productinfo.imageUrl AS imageUrl,
         dcmall.productinfo.title AS title, 
         dcmall.productinfo.cost AS cost, 
@@ -399,8 +400,9 @@ export async function selectAllProduct(){
     FROM 
         dcmall.productinfo 
     LEFT OUTER JOIN 
-        dcmall.site ON dcmall.productinfo.id = dcmall.site.id;
-`;
+        dcmall.site ON dcmall.productinfo.id = dcmall.site.id
+    ORDER BY
+        id DESC;`;
 
     try {
         const [productsWithSiteUrl] = await connection.query(query);
