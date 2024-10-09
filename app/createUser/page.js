@@ -12,7 +12,6 @@ export default function SignIn() {
     const email = sessionStorage.getItem('userEmail');
     if (email) {
       setUserEmail(email);
-      sessionStorage.removeItem('userEmail'); // 이메일을 읽은 후에 폐기합니다.
     }
   }, []);
 

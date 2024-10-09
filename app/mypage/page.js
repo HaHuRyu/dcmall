@@ -33,12 +33,7 @@ export default function Mypage(){
     }
    },[])
 
-    //닉네임이 업데이트될 때 sessionStorage에서 삭제
-    useEffect(() => {
-        if (nickName !== '') {
-            sessionStorage.removeItem('usernick');
-        }
-    }, [nickName]);
+    
    return (
     <div>
         <h1>마이페이지에 온 것을 환영합니다.</h1>
