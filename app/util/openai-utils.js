@@ -26,6 +26,7 @@ export async function getEmbedding(text, threshold, num) {
   if(threshold == "x") {
       const result = await supabase.rpc('search_items', {
         query_embedding: embedding,
+        query_text: text,
         match_threshold: 0.1,
         match_count: 30
       });
