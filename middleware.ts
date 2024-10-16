@@ -1,41 +1,71 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Edge Runtime에서는 사용할 수 없는 Node.js 특정 API나 기능을 사용하기 위해 추가
-// 꼭 필요한 경우에만 사용해야함. 아무대나 사용할 시 런타임 시간이 길어지는 문제점이 발생함.
-export const runtime = 'nodejs'
+// Node.js 런타임 설정 (Edge 런타임을 사용하지 않기 위함)
+export const runtime = 'nodejs';
 
-/*
-    미들웨어에서 직접 데이터를 보내는 것은 일반적인 패턴은 아닙니다. 
-    미들웨어의 주요 목적은 요청을 가로채고, 필요한 경우 수정하거나 리디렉션하는 것
- */
-export async function middleware(request: NextRequest){
-    const response = NextResponse.next();
-    const session = request.cookies.get('next-session');
+let lastFetchTime = 0; // 마지막 API 호출 시간을 저장하는 변수
+const FETCH_INTERVAL = 1 * 60 * 1000; // 5분 (밀리초 단위)
+
+// testFetch 함수는 모든 경로에서 실행
+const testFetch = async (sessionId: string | undefined) => {
+    if (!sessionId) return;
+    const now = Date.now();
+
+    // 마지막 요청 시간으로부터 FETCH_INTERVAL이 지나지 않았는지 확인
+    if (now - lastFetchTime > FETCH_INTERVAL) {
+        try {
+            console.log("API 요청을 보냅니다.");
     
-    if (!session && request.nextUrl.pathname.startsWith('/login')) {
-        return response;
-    } else if(!session){
-        return NextResponse.redirect(new URL('/login/signIn', request.url));
+            const res = await fetch("http://localhost:3000/api/sessionExpireTime", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ sessionId })
+            });
+    
+            if (res.status === 200) {
+                lastFetchTime = now; // 성공적으로 호출했으므로 현재 시간을 업데이트
+            }
+        } catch (error) {
+            console.error("Fetch error:", error);
+        }
     }
+}
 
-    
-    if(session){
-        // if(request.nextUrl.pathname.startsWith('/login/reset-password')){
-        //     return NextResponse.next();
-        // }
-        // 세션이 있는 경우의 로직
-        if (request.nextUrl.pathname.startsWith('/login')) {
+export async function middleware(request: NextRequest) {
+    const session = request.cookies.get('next-session');
+
+    // 1. 모든 경로에서 testFetch 실행
+    await testFetch(session?.value);
+
+    // 2. 특정 경로('/keyword', '/login')에서만 추가 로직 실행
+    const pathname = request.nextUrl.pathname;
+
+    // '/login' 또는 '/keyword' 경로에서만 동작하는 로직
+    if (pathname.startsWith('/keyword') || pathname.startsWith('/login')) {
+        const response = NextResponse.next();
+
+        // 세션이 없는 경우 /login으로 리다이렉트
+        if (!session && !pathname.startsWith('/login')) {
+            return NextResponse.redirect(new URL('/login/signIn', request.url));
+        }
+
+        // 세션이 있는 경우, /login으로 접근 시 메인 페이지로 리다이렉트
+        if (session && pathname.startsWith('/login')) {
             return NextResponse.redirect(new URL('/', request.url));
         }
-        else 
-            return NextResponse.next();
+
+        // 그 외 경로에서는 계속 진행
+        return response;
     }
 
+    // 다른 경로는 그대로 진행
+    return NextResponse.next();
 }
 
 export const config = {
     matcher: [
-        '/keyword/:path*',
-        '/login/:path*'
+        '/:path*', // 모든 경로에서 testFetch 실행
     ],
-  }
+};
