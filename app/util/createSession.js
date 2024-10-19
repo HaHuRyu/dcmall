@@ -19,26 +19,27 @@ export async function createSession(email, registSession){
     }
 }
 
-export async function keepSession(sessionId, registSession) {   //F12 세션의 expires가 갱신이 안 됨
+export async function keepSession(sessionId, registSession) {
     const now = new Date(); // 현재 UTC 시간
     const maxTime = new Date(now.getTime() + 3600000); // 1시간 후의 시간
-
+  
     const result = await registSession(sessionId, maxTime);
-    
-    // registeSession의 결과가 200일 경우에만 쿠키를 설정
+  
     if (result.status === 200) {
-        // 새로운 쿠키 설정
-        const res = cookies().set('next-session', sessionId, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 3600, // 새로 설정할 유효 시간
-            sameSite: 'Lax',
-            path: '/',
-        });
-        console.log("새로운 세션 만들기: "+res);
-        return NextResponse.json({message: "세션 등록 성공!"}, {status: 200});
+      // 응답 객체 생성
+      const response = NextResponse.json({ message: "세션 갱신 성공!" }, { status: 200 });
+  
+      // 응답 객체에 쿠키 설정
+      response.cookies.set('next-session', sessionId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 3600, // 1시간
+        sameSite: 'Lax',
+        path: '/',
+      });
+  
+      return response;
     }
-    
-    // 만약 세션 등록이 실패했을 경우 적절한 응답을 반환
-    return NextResponse.json({ message: "세션 등록에 실패했습니다." }, { status: 500 });
-}
+  
+    return NextResponse.json({ message: "세션 갱신에 실패했습니다." }, { status: 500 });
+  }

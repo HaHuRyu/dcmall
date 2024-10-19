@@ -8,11 +8,13 @@ export async function POST(req){
     console.log("들어온 값: "+email+" "+password);
     
     const user = await queryDatabase(email);
+    console.log("aaaa" + user)
+    if(!user){
+        return NextResponse.json({message : "존재하지 않는 아이디입니다."}, {status : 404});
+    }
     const userNick = await selectCustomUser(email);
 
-    if(!user){
-        return NextResponse.json({message : "존재하지 않는 이메일입니다."}, {status : 404});
-    }
+    
 
     const dbPw = user[0].password;
     const salt = user[0].salt;

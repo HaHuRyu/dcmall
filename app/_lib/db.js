@@ -32,12 +32,13 @@ export async function queryDatabase(id) {
 
     try {
         const [rows, fields] = await connection.query(query, [id]);
-        console.log("Rows:", rows);
-        console.log("Fields:", fields);
+        if (rows.length === 0) {
+            throw new Error('사용자를 찾을 수 없습니다.');
+        }
         return rows;
     } catch (error) {
         console.error("Error executing query:", error);
-        throw error;
+        return false;
     } finally {
         if (connection) {
             await connection.end(); // 연결 닫기
