@@ -83,10 +83,17 @@ const Header: React.FC<HeaderProps> = ({ sessionCookie }) => {
     }
   };
 
+  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault(); // 기본 동작 방지
+    setSearchWord('');
+    router.push('/'); // 루트 경로로 이동
+    router.refresh(); // 페이지 새로고침
+  };
+
   return (
     <header style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '1rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-        <Link href="/">
+        <Link href="/" onClick={handleLogoClick}>
           <h1>Dcmall</h1>
         </Link>
         {!isLoginPage && (
