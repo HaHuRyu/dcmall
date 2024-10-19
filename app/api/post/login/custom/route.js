@@ -15,7 +15,9 @@ export async function POST(req){
     }
 
     const dbPw = user[0].password;
-    const safePw = password_check(dbPw, password);
+    const salt = user[0].salt;
+    console.log(dbPw +" // " + salt)
+    const safePw = password_check(dbPw, password, salt);
 
     if(!safePw){
         return NextResponse.json({message : "비밀번호가 일치하지 않습니다."}, {status : 401});

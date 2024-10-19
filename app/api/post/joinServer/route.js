@@ -19,9 +19,10 @@ export async function POST(req){
     const safeNick = await nickCheck(nickName);
 
     if(safeId && safePw && safeNick){
-        var hashPw = password_salt(userPw)
+        let {hashPw, salt} = password_salt(userPw)
+
         //DB에 저장하는 부분을 집어 넣자
-        setUser(userId, hashPw, Email, nickName);
+        setUser(userId, hashPw, Email, nickName, salt);
 
         return NextResponse.json({message : "회원가입 성공!"}, {status : 200});
     }

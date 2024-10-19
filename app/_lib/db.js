@@ -122,14 +122,14 @@ export async function finalIdCheck(id) {
     return false;
 }
 
-export async function setUser(userId, userPw, email, nick) {    //240828 테스트 필요!
+export async function setUser(userId, userPw, email, nick, salt) {    //240828 테스트 필요!
     const connection = await getConnection();
-    const query1 = "INSERT INTO user(id, password, signinType) VALUES (?, ?, ?)";
+    const query1 = "INSERT INTO user(id, password, signinType, salt) VALUES (?, ?, ?, ?)";
     const findUserNum = "SELECT num FROM user WHERE id = ? && password = ?"
     const query2 = "INSERT INTO userinfo(num, email, nickname) VALUES (?, ?, ?)";
 
     try {
-        await connection.query(query1, [userId, userPw, 0]);
+        await connection.query(query1, [userId, userPw, 0, salt]);
         let userNum = await connection.query(findUserNum, [userId, userPw]);
         await connection.query(query2, [userNum[0][0].num, email, nick]);
         return { message: "회원가입 성공!", status: 200 };

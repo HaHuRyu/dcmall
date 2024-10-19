@@ -33,10 +33,6 @@ export default function Mypage(){
     }
    },[])
 
-<<<<<<< HEAD
-    
-=======
->>>>>>> a9dc1d312b4eceb8799a1aa8f1a7a71926ecabdf
    return (
     <div>
         <h1>마이페이지에 온 것을 환영합니다.</h1>
