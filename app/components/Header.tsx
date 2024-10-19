@@ -63,7 +63,7 @@ const Header: React.FC<HeaderProps> = ({ sessionCookie }) => {
     e.preventDefault();
     // 검색 제출 시 추천 목록 초기화
     setSuggestions([]);
-    router.push(`/?search=${encodeURIComponent(searchWord)}`);
+    router.push(`?search=${encodeURIComponent(searchWord)}`);
   };
 
   const handleSignOut = async () => {

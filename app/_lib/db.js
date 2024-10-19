@@ -300,12 +300,12 @@ export async function compareSession(id){
     }
 }
 
-export async function updateSessionId(id, newSession) {
+export async function updateSessionId(id, newSession, maxTime) {
     const connection = await getConnection();
-    const query = "UPDATE userinfo SET sessionId = ? WHERE num = (SELECT num FROM user WHERE id = ?)";
+    const query = "UPDATE userinfo SET sessionId = ?, session_expire_time = ? WHERE num = (SELECT num FROM user WHERE id = ?)";
 
     try {
-        await connection.query(query, [newSession, id]);
+        await connection.query(query, [newSession, maxTime, id]);
 
         return {message: "Success!", status: 200};
     } catch (error) {
@@ -318,7 +318,7 @@ export async function updateSessionId(id, newSession) {
 
 export async function resetSessionId(session){
     const connection = await getConnection();
-    const query = "UPDATE userinfo SET sessionId = NULL WHERE sessionId = ?";
+    const query = "UPDATE userinfo SET sessionId = NULL, session_expire_time = NULL WHERE sessionId = ?";
 
     try{
         await connection.query(query, [session]);
@@ -392,6 +392,7 @@ export async function selectAllProduct(){
     const connection = await getConnection();
     const query = `
     SELECT 
+        dcmall.productinfo.postid AS id,
         dcmall.productinfo.imageUrl AS imageUrl,
         dcmall.productinfo.title AS title, 
         dcmall.productinfo.cost AS cost, 
@@ -399,8 +400,9 @@ export async function selectAllProduct(){
     FROM 
         dcmall.productinfo 
     LEFT OUTER JOIN 
-        dcmall.site ON dcmall.productinfo.id = dcmall.site.id;
-`;
+        dcmall.site ON dcmall.productinfo.id = dcmall.site.id
+    ORDER BY
+        id DESC;`;
 
     try {
         const [productsWithSiteUrl] = await connection.query(query);
@@ -485,12 +487,12 @@ export async function selectSessionByGoogleEmail(email){    //240828 테스트 �
     }
 }
 
-export async function updateSessionByGoogleEmail(email, newSessionId){    //240828 테스트 필요!
+export async function updateSessionByGoogleEmail(email, newSessionId, maxTime){    //240828 테스트 필요!
     const connection = await getConnection();
-    const query = "UPDATE dcmall.userinfo SET sessionId = ? WHERE email = ?";
+    const query = "UPDATE dcmall.userinfo SET sessionId = ?, session_expire_time = ? WHERE email = ?";
 
     try{
-        await connection.query(query, [newSessionId, email]);
+        await connection.query(query, [newSessionId, maxTime, email]);
 
         return {message: "sessionId Update Success by Google email", status : 200};
     }catch(err){
@@ -722,6 +724,8 @@ export async function mypageResetPassword(num, newPw){
     }catch(err){
         console.error("mypageResetPassword error: ", err);
         return {message: "비밀번호 변경 실패", status: 400};
+    }finally{
+        if(connection) connection.end();
     }
 }
 
@@ -768,6 +772,41 @@ export async function selectCustomUser(id){
     }
 }
 
+export async function selectSessionExpireTimeBySession(sessionId){
+    const connection = await getConnection();
+    const query = "SELECT session_expire_time FROM userinfo WHERE sessionId = ?"
+
+    try{
+        const [result] = await connection.query(query, [sessionId]);
+
+        if(result.length > 0){
+            return {message: result[0].session_expire_time, status: 200};
+        }else{
+            return {message: null, statsu: 201};
+        }
+    }catch(err){
+        console.error("selectSessionExpireTimeBySession error: ",err);
+        return {message: "selectSessionExpireTimeBySession error", status: 500};
+    }finally{
+        if(connection) connection.end();
+    }
+}
+
+export async function updateSessionExpireTimeBySession(sessionId, Time){
+    const connection = await getConnection();
+    const query = "UPDATE userinfo SET session_expire_time = ? WHERE sessionId = ?"
+
+    try{
+        console.log("성공했는가?");
+        await connection.query(query, [Time, sessionId]);
+        return {message: "세션 업데이트 성공", status: 200};
+    }catch(err){
+        console.error("updateSessionExpireTimeBySession error: ",err);
+        return {message: "세션 업데이트 실패", status: 500};
+    }finally{
+        if(connection) connection.end();
+    }
+}
 export async function certificationNotification(num) {
     const connection = await getConnection();
     const query = "SELECT user_num FROM notification WHERE user_num = ?";
