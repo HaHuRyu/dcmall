@@ -792,13 +792,13 @@ export async function selectSessionExpireTimeBySession(sessionId){
     }
 }
 
-export async function updateSessionExpireTimeBySession(sessionId, Time){
+export async function updateSessionExpireTimeBySession(sessionId, Time, newSession){
     const connection = await getConnection();
-    const query = "UPDATE userinfo SET session_expire_time = ? WHERE sessionId = ?"
+    const query = "UPDATE userinfo SET session_expire_time = ?, sessionId = ? WHERE sessionId = ?"
 
     try{
         console.log("성공했는가?");
-        await connection.query(query, [Time, sessionId]);
+        await connection.query(query, [Time, newSession, sessionId]);
         return {message: "세션 업데이트 성공", status: 200};
     }catch(err){
         console.error("updateSessionExpireTimeBySession error: ",err);

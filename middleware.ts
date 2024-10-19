@@ -16,8 +16,9 @@ const testFetch = async (sessionId: string | undefined) => {
         try {
             console.log("API 요청을 보냅니다.");
     
-            const res = await fetch("http://localhost:3000/api/sessionExpireTime", {
+            const res = await fetch("https://localhost:3001/api/sessionExpireTime", {
                 method: "POST",
+                credentials: 'include', // 쿠키 포함
                 headers: {
                     'Content-Type': 'application/json',
                 },

@@ -18,7 +18,6 @@ export async function POST(req){
 
     if(differenceInSeconds < 3555){ //600초 10분 미만으로 남았을 때 갱신할 거임
         const response = await keepSession(sessionId, updateSessionExpireTimeBySession);
-        console.log("서버에서 keepSession");
         return response; // 새 쿠키가 설정된 응답 반환
     }else{
         return NextResponse.json({message: "세션을 재유지 불필요"}, {status: 201});
