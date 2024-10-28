@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { InfScroll, InfScrollNoSearch, InfScrollProvider} from './util/infiniteScroll'
 
+
 export default function Page() {
   const [resultList, setResultList] = useState([]);
   const [renderTrigger, setRenderTrigger] = useState(false);

@@ -3,6 +3,7 @@ import "./globals.css";
 import Header from './components/Header';
 import { cookies } from 'next/headers';
 import GoogleOAuthWrapper from './components/GoogleOAuthWrapper/GoogleOAuthWrapper';
+import SessionRefreshWrapper from './components/sessionRefreshWrapper';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -10,6 +11,7 @@ export const metadata = {
   title: "Dcmall",
   description: "Dcmall shopping platform",
 };
+
 
 export default function RootLayout({
   children,
@@ -22,12 +24,14 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className={inter.className}>
-        <GoogleOAuthWrapper>
-          <div className="container">
-            <Header sessionCookie={sessionCookie ? sessionCookie.value : null} />
-            <main>{children}</main>
-          </div>
-        </GoogleOAuthWrapper>
+        <SessionRefreshWrapper>
+          <GoogleOAuthWrapper>
+            <div className="container">
+              <Header sessionCookie={sessionCookie ? sessionCookie.value : null} />
+              <main>{children}</main>
+            </div>
+          </GoogleOAuthWrapper>
+        </SessionRefreshWrapper>
       </body>
     </html>
   );

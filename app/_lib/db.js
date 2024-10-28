@@ -12,10 +12,13 @@ let connection;
 export async function getConnection() {
     try{
         connection = await mysql.createConnection({
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_DATABASE,
+            host: process.env.DB_HOST,
+            user: process.env.DB_USER,
+            port: process.env.DB_PORT,
+            password: process.env.DB_PASSWORD,
+            database: process.env.DB_DATABASE,
+            allowPublicKeyRetrieval: true,
+            ssl: false,
         });
         console.log('MySQL 데이터베이스에 연결되었습니다. 연결 ID:', connection.threadId);
         return connection;
@@ -37,7 +40,7 @@ export async function queryDatabase(id) {
         return rows;
     } catch (error) {
         console.error("Error executing query:", error);
-        throw error;
+        return false;
     } finally {
         if (connection) {
             await connection.end(); // 연결 닫기
@@ -782,7 +785,7 @@ export async function selectSessionExpireTimeBySession(sessionId){
         if(result.length > 0){
             return {message: result[0].session_expire_time, status: 200};
         }else{
-            return {message: null, statsu: 201};
+            return {message: null, status: 201};
         }
     }catch(err){
         console.error("selectSessionExpireTimeBySession error: ",err);
@@ -797,7 +800,6 @@ export async function updateSessionExpireTimeBySession(sessionId, Time, newSessi
     const query = "UPDATE userinfo SET session_expire_time = ?, sessionId = ? WHERE sessionId = ?"
 
     try{
-        console.log("성공했는가?");
         await connection.query(query, [Time, newSession, sessionId]);
         return {message: "세션 업데이트 성공", status: 200};
     }catch(err){
