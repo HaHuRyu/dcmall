@@ -1,6 +1,6 @@
 import {v4 as uuidv4} from 'uuid';
 import { cookies } from 'next/headers';
-import { NextResponse } from 'next/server';
+// import {redis} from '../_lib/redis'
 
 export async function createSession(email, registSession){
     
@@ -18,6 +18,14 @@ export async function createSession(email, registSession){
             maxAge: 3600,
             path: '/',
         });
+
+        //이 부분에서 redis에 Key: email Value: sessionId, maxTime (두 개의 Value가 필요)
+        // await redis.hset(`email:${email}`,{
+        //     'session': sessionId,
+        //     'maxTime': maxTime.toString()
+        // });
+
+        // await redis.expire(`email:${email}`,3600);
     }
 }
 

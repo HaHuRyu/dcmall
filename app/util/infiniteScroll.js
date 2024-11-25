@@ -68,24 +68,26 @@ export function InfScroll({ searchResults }) {
     return (
         <div className="scroll-container" style={{ minHeight: '100vh', overflowY: 'auto' }}>
             <ul style={{ listStyleType: 'none', padding: 0 }}>
-                {data.pages.map((page, index) => (
-                    <React.Fragment key={index}>
-                        {page.results.map(item => (
-                            <li key={item.title} style={{ marginBottom: '20px' }}>
-                                <div>
-                                    {item.imageUrl === "no data" ? (
-                                        <img src="https://storage.googleapis.com/dcmall/noData/9482213.png" alt="대체 이미지" width={160} height={160}/>
-                                    ) : (
-                                        <img src={item.imageUrl} alt={item.title} width={160} height={160}/>
-                                    )}
-                                </div>
-                                <a href={item.perfectUrl} target="_blank" rel="noopener noreferrer">
-                                    {item.title} - 유사도: {Number(item.similarity * 100).toFixed(2)}%
-                                </a>
-                                <p>가격: {item.cost}원</p>
-                            </li>
-                        ))}
-                    </React.Fragment>
+                {data?.pages.map((page, index) => (
+                    page.results?.length > 0 ? ( // 각 page의 results 길이 확인
+                        <React.Fragment key={index}>
+                            {page.results.map(item => (
+                                <li key={item.title} style={{ marginBottom: '20px' }}>
+                                    <div>
+                                        {item.imageUrl === "no data" ? (
+                                            <img src="https://storage.googleapis.com/dcmall/noData/9482213.png" alt="대체 이미지" width={160} height={160}/>
+                                        ) : (
+                                            <img src={item.imageUrl} alt={item.title} width={160} height={160}/>
+                                        )}
+                                    </div>
+                                    <a href={item.perfectUrl} target="_blank" rel="noopener noreferrer">
+                                        {item.title} - 유사도: {Number(item.similarity * 100).toFixed(2)}%
+                                    </a>
+                                    <p>가격: {item.cost}원</p>
+                                </li>
+                            ))}
+                        </React.Fragment>
+                    ) : null
                 ))}
             </ul>
             <div ref={loaderRef} style={{ height: '100px', background: 'transparent' }}></div>
@@ -94,7 +96,7 @@ export function InfScroll({ searchResults }) {
     );
 }
 
-export function InfScrollNoSearch({ searchResults }) {
+export function InfScrollNoSearch({ searchResults }) {  //왜 그러냐? 올바르게 수행 뿌리는 부분의 무언가의 오류
     const {
         data,
         fetchNextPage,
@@ -135,23 +137,25 @@ export function InfScrollNoSearch({ searchResults }) {
         <div className="scroll-container" style={{ minHeight: '100vh', overflowY: 'auto' }}>
             <ul style={{ listStyleType: 'none', padding: 0 }}>
                 {data?.pages.map((page, index) => (
-                    <React.Fragment key={index}>
-                        {page.results.map(item => (
-                            <li key={item.title} style={{ marginBottom: '20px' }}>
-                                <div>
-                                    {item.imageUrl === "no data" ? (
-                                        <img src="https://storage.googleapis.com/dcmall/noData/9482213.png" alt="대체 이미지" width={160} height={160}/>
-                                    ) : (
-                                        <img src={item.imageUrl} alt={item.title} width={160} height={160}/>
-                                    )}
-                                </div>
-                                <a href={item.perfectUrl} target="_blank" rel="noopener noreferrer">
-                                    {item.title}
-                                </a>
-                                <p>가격: {item.cost}원</p>
-                            </li>
-                        ))}
-                    </React.Fragment>
+                    page.results?.length > 0 ? ( // 각 page의 results 길이 확인
+                        <React.Fragment key={index}>
+                            {page.results.map(item => (
+                                <li key={item.title} style={{ marginBottom: '20px' }}>
+                                    <div>
+                                        {item.imageUrl === "no data" ? (
+                                            <img src="https://storage.googleapis.com/dcmall/noData/9482213.png" alt="대체 이미지" width={160} height={160}/>
+                                        ) : (
+                                            <img src={item.imageUrl} alt={item.title} width={160} height={160}/>
+                                        )}
+                                    </div>
+                                    <a href={item.perfectUrl} target="_blank" rel="noopener noreferrer">
+                                        {item.title}
+                                    </a>
+                                    <p>가격: {item.cost}원</p>
+                                </li>
+                            ))}
+                        </React.Fragment>
+                    ) : null
                 ))}
             </ul>
             <div ref={loaderRef} style={{ height: '100px', background: 'transparent' }}></div>

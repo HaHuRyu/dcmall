@@ -3,7 +3,11 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { InfScroll, InfScrollNoSearch, InfScrollProvider} from './util/infiniteScroll'
 
-
+/*
+24-11-24
+getAllProduct를 저런 식으로 구성하면 redis거를 먼저 뿌리고, mysql것을 뿌릴 줄 알았으나,
+실상은 mysql이 덮어씌워지는 형태였다.
+*/
 export default function Page() {
   const [resultList, setResultList] = useState([]);
   const [renderTrigger, setRenderTrigger] = useState(false);
@@ -57,26 +61,42 @@ export default function Page() {
     }
   }, [searchWord]);
 
-  const fetchAllProducts = async (e) => {
-    try{
-      const response = await fetch('/api/post/getAllProduct', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({}), // 빈 객체를 전송합니다.
-      });
+  const fetchAllProducts = async () => {
+    try {
+        // Redis 데이터 가져오기
+        const redisResponse = await fetch('/api/post/getAllProduct', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({}),
+        });
 
-      const data = await response.json();
-      const message = data.message;
+        if (redisResponse.ok) {
+          const redisData = await redisResponse.json();
+          const redisMessage = redisData.message;
 
-      if(response.status === 200){
-        setAllProductList(message);
-      }
-    }catch(err){
-      console.error("fetchAllProducts Error: "+err);
+          if (redisMessage) { //이제 링킹해야 함;;
+              // 객체를 배열로 변환하여 JSON 파싱
+              const parsedRedisMessage = Object.values(redisMessage).map((item) => JSON.parse(item));
+              setAllProductList((prevList) => [...prevList, ...parsedRedisMessage]);
+          }
+        }
+
+        // MySQL 데이터 가져오기
+        const mysqlResponse = await fetch('/api/post/getAllProduct', {
+            method: 'GET',
+        });
+
+        if (mysqlResponse.ok) {
+            const mysqlData = await mysqlResponse.json();
+            const mysqlMessage = mysqlData.message;
+            if (mysqlMessage?.length > 0) {
+                setAllProductList((prevList) => [...prevList, ...mysqlMessage]);
+            }
+        }
+    } catch (error) {
+        console.error("fetchAllProducts Error: " + error);
     }
-  }
+  };
 
   useEffect(() => {
     if (resultList === null || resultList.length === 0) {

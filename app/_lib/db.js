@@ -391,7 +391,7 @@ export async function searchRecom(searchText){
     }
 }
 
-export async function selectAllProduct(){
+export async function selectAllProduct(boarder){
     const connection = await getConnection();
     const query = `
     SELECT 
@@ -409,12 +409,9 @@ export async function selectAllProduct(){
 
     try {
         const [productsWithSiteUrl] = await connection.query(query);
+        const returnList = productsWithSiteUrl.filter(item => item.id < boarder);
 
-        if (productsWithSiteUrl.length > 0) {
-            return { message: productsWithSiteUrl, status: 200 };
-        } else {
-            return { message: "selectAllProduct Failed", status: 400 };
-        }
+        return { message: returnList, status: 200};
     } catch (err) {
         console.error("selectAllProduct 오류: " + err);
         return { message: "selectAllProduct Error", status: 400 };
@@ -795,6 +792,26 @@ export async function selectSessionExpireTimeBySession(sessionId){
     }
 }
 
+export async function productinfoMaxPostId(){
+    const connection = await getConnection();
+    const query = "SELECT postid FROM productinfo ORDER BY postid DESC LIMIT 1"
+
+    try{
+        const [result] = await connection.query(query);
+
+        if(result.length > 0){
+            return{message: result[0].postid, status: 200};
+        }else{
+            return {message: "제일 윗 번호의 postid를 가져올 수 없는 거임;;;", status:201};
+        }
+    }catch(error){
+        console.error("productinfoMaxPostId error: ",error);
+        return {message: "productinfoMaxPostId catch에서 잡혀버린 거임;;;", status:500};
+    }finally{
+        if(connection) connection.end();
+    }
+}
+
 export async function updateSessionExpireTimeBySession(sessionId, Time, newSession){
     const connection = await getConnection();
     const query = "UPDATE userinfo SET session_expire_time = ?, sessionId = ? WHERE sessionId = ?"
@@ -809,6 +826,7 @@ export async function updateSessionExpireTimeBySession(sessionId, Time, newSessi
         if(connection) connection.end();
     }
 }
+
 export async function certificationNotification(num) {
     const connection = await getConnection();
     const query = "SELECT user_num FROM notification WHERE user_num = ?";
