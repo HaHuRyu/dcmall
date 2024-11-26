@@ -17,28 +17,23 @@ export async function redisFullSize(){
 }
 
 export async function getAllRecords() {
-    try {
-      const allRecords = {};
-      let cursor = '0';
-  
-      do {
-        // SCAN 명령으로 키 검색 (배치 단위로 가져옴)
-        const [nextCursor, keys] = await redis.scan(cursor);
-  
-        // 각 키의 값을 가져와 기록
-        for (const key of keys) {
-          const value = await redis.get(key); // 키의 값을 가져옴
-          allRecords[key] = value; // 결과 객체에 저장
-        }
-  
-        cursor = nextCursor; // 다음 커서로 이동
-      } while (cursor !== '0'); // 커서가 0이 되면 종료
-  
-      return allRecords;
-    } catch (error) {
-      console.error('Redis 레코드를 가져오는 중 오류 발생:', error);
-      throw error;
+    let cursor = 0;
+    const allRecords = []; // 데이터를 저장할 배열
+
+    while (true) {
+      const key = cursor.toString(); // 숫자 키를 문자열로 변환
+      const value = await redis.get(key); // 해당 키의 값을 가져옴
+    
+      if (value === null) {
+        // GET 결과가 null이면 더 이상 유효한 키가 없으므로 반복 종료
+        break;
+      }
+      allRecords[key] = value; // 결과 객체에 저장
+    
+      cursor += 1; // 다음 키로 이동
     }
+
+    return allRecords; // 배열 형태로 반환
 }
 
 export {redis};

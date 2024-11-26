@@ -63,6 +63,8 @@ export default function Page() {
 
   const fetchAllProducts = async () => {
     try {
+        const productSet = new Set(); // 중복 방지를 위한 Set 생성
+
         // Redis 데이터 가져오기
         const redisResponse = await fetch('/api/post/getAllProduct', {
             method: 'POST',
@@ -75,9 +77,14 @@ export default function Page() {
           const redisMessage = redisData.message;
 
           if (redisMessage) { //이제 링킹해야 함;;
-              // 객체를 배열로 변환하여 JSON 파싱
+              // 객체를 배열로 변환하여 JSON 파싱 후 Set에 추가
               const parsedRedisMessage = Object.values(redisMessage).map((item) => JSON.parse(item));
-              setAllProductList((prevList) => [...prevList, ...parsedRedisMessage]);
+              parsedRedisMessage.forEach((item) => productSet.add(JSON.stringify(item)))
+
+              // Set을 배열로 변환하면서 JSON.parse로 다시 객체로 변환
+              const uniqueProducts = Array.from(productSet).map((item) => JSON.parse(item));
+
+              setAllProductList(uniqueProducts); // 중복 제거된 데이터로 상태 업데이트
           }
         }
 
@@ -90,7 +97,11 @@ export default function Page() {
             const mysqlData = await mysqlResponse.json();
             const mysqlMessage = mysqlData.message;
             if (mysqlMessage?.length > 0) {
-                setAllProductList((prevList) => [...prevList, ...mysqlMessage]);
+                mysqlMessage.forEach((item) => productSet.add(JSON.stringify(item))); // JSON.stringify로 중복 확인
+                // Set을 배열로 변환하면서 JSON.parse로 다시 객체로 변환
+                const uniqueProducts = Array.from(productSet).map((item) => JSON.parse(item));
+
+                setAllProductList(uniqueProducts); // 중복 제거된 데이터로 상태 업데이트
             }
         }
     } catch (error) {

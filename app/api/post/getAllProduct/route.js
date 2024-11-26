@@ -22,8 +22,9 @@ export async function GET(req){
         const redisFullSizeResult = await redisFullSize();
 
         const boarder = MaxPostIdResult.message - redisFullSizeResult
-
+    
         const resultList = await selectAllProduct(boarder);
+        console.log(boarder+" = 보더 // "+JSON.stringify(resultList))
         return NextResponse.json({message:resultList.message}, {status: 200});
     }catch(err){
         console.err("모든 상품 가져오기 서버 오류: ",err)
