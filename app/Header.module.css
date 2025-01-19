@@ -1,134 +1,138 @@
 .header {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    width: 100%;
-    border-bottom: 1px solid #e5e7eb;
-    background-color: white;
-  }
-  
-  .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 1rem;
-  }
-  
-  .headerContent {
-    display: flex;
-    height: 4rem;
-    align-items: center;
-    justify-content: space-between;
-  }
-  
-  .logo {
-    font-size: 1.25rem;
-    font-weight: bold;
-    color: #7c3aed;
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  
-  .logo:hover {
-    color: #6d28d9;
-  }
-  
-  .searchForm {
-    position: relative;
-    flex: 1;
-    max-width: 32rem;
-    margin: 0 2rem;
-  }
-  
-  .searchInputWrapper {
-    position: relative;
-  }
-  
-  .searchIcon {
-    position: absolute;
-    left: 0.75rem;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 1rem;
-    height: 1rem;
-    color: #9ca3af;
-  }
-  
-  .searchInput {
-    width: 100%;
-    padding: 0.5rem 5rem 0.5rem 2.5rem;
-    border-radius: 0.5rem;
-    border: 1px solid #e5e7eb;
-    font-size: 0.875rem;
-  }
-  
-  .searchInput:focus {
-    outline: none;
-    border-color: #d1d5db;
-    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
-  }
-  
-  .searchButton {
-    position: absolute;
-    right: 0.5rem;
-    top: 50%;
-    transform: translateY(-50%);
-    padding: 0.375rem 1rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #4b5563;
-    background: none;
-    border: none;
-    cursor: pointer;
-    transition: color 0.2s;
-  }
-  
-  .searchButton:hover {
-    color: #1f2937;
-  }
-  
-  .suggestions {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    margin-top: 0.25rem;
-    background-color: white;
-    border-radius: 0.5rem;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    overflow: hidden;
-  }
-  
-  .suggestionItem {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    color: #4b5563;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-  
-  .suggestionItem:hover {
-    background-color: #f9fafb;
-    color: #1f2937;
-  }
-  
-  .authButtons {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-  
-  .authButton {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #4b5563;
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  
-  .authButton:hover {
-    color: #1f2937;
-  }
-  
-  
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: white;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.headerContent {
+  display: flex;
+  height: 4rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #7c3aed;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.logo:hover {
+  color: #6d28d9;
+}
+
+.searchForm {
+  position: relative;
+  flex: 1;
+  max-width: 32rem;
+  margin: 0 2rem;
+}
+
+.searchInputWrapper {
+  display: flex;
+  position: relative;
+  /* 전체가 하나의 그룹(인풋+버튼)이 되도록 Flex 사용 */
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
+  color: #9ca3af;
+}
+
+.searchInput {
+  /* 인풋을 왼쪽에 배치 */
+  flex: 1;
+  padding: 0.5rem 0.75rem 0.5rem 2.5rem; /* 왼쪽 아이콘 위해 여백(2.5rem) */
+  border: 1px solid #e5e7eb;
+  border-right: none; /* 오른쪽은 버튼과 맞닿도록 */
+  border-radius: 0.5rem 0 0 0.5rem; /* 왼쪽 둥글게, 오른쪽은 버튼과 이어짐 */
+  font-size: 0.875rem;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #d1d5db;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+}
+
+.searchButton {
+  /* 버튼을 인풋과 이어 붙임 */
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4b5563;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-left: none; /* 인풋과 겹치는 부분 제거 */
+  border-radius: 0 0.5rem 0.5rem 0; /* 오른쪽 둥글게 */
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.searchButton:hover {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  margin-top: 0.25rem;
+  background-color: white;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+              0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  z-index: 10;
+}
+
+.suggestionItem {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.suggestionItem:hover {
+  background-color: #f9fafb;
+  color: #1f2937;
+}
+
+.authButtons {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.authButton {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4b5563;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.authButton:hover {
+  color: #1f2937;
+}

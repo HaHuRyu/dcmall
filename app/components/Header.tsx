@@ -1,10 +1,11 @@
 "use client";
-import React, { useState, useEffect, useRef } from 'react';
-import { Search } from 'lucide-react'
+
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import debounce from 'lodash.debounce';
+import { Search } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import styles from '../Header.module.css'
-//import { Search, Menu, X } from 'lucide-react';
+import styles from '../Header.module.css';
 
 interface HeaderProps {
   sessionCookie: string | null;
@@ -17,77 +18,82 @@ const Header: React.FC<HeaderProps> = ({ sessionCookie }) => {
   const pathname = usePathname();
   const router = useRouter();
 
-  // //25-01-11 추가된 css 부분
-  // const [isMenuOpen, setIsMenuOpen] = useState(false);
-  // const [searchQuery, setSearchQuery] = useState('');
-
-  // const handleSearch = (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   if (searchQuery.trim()) {
-  //     router.push(`/?search=${encodeURIComponent(searchQuery.trim())}`);
-  //   }
-  // };
-
+  // 검색 폼 참조
+  const formRef = useRef<HTMLFormElement>(null);
   const isLoginPage = pathname?.startsWith('/login') || false;
 
-  // 검색 폼을 참조하기 위한 useRef 생성
-  const formRef = useRef<HTMLFormElement>(null);
-
-  // 컴포넌트가 마운트될 때 클릭 이벤트 리스너 추가
+  // 검색어 자동완성 바깥 클릭 시 목록 닫기
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (formRef.current && !formRef.current.contains(event.target as Node)) {
         setSuggestions([]);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      // 컴포넌트가 언마운트될 때 이벤트 리스너 제거
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
 
-  const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchWord(value);
-
-    if (value.length > 0) {
+  // 디바운스된 서버 요청
+  const debouncedFetchSuggestions = useCallback(
+    debounce(async (value: string) => {
       try {
         const response = await fetch('/api/post/searchRecommand', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ searchText: value })
+          body: JSON.stringify({ searchText: value }),
         });
 
-        const data = await response.json();
+        if (!response.ok) {
+          console.error(`자동완성 요청 실패: 서버 응답이 ${response.status}입니다.`);
+          setSuggestions([]);
+          return;
+        }
 
-        if (response.status === 200) {
-          setSuggestions(data.message.map((item: any) => item.title));
+        const data = await response.json();
+        if (data?.message && Array.isArray(data.message)) {
+          const titles = data.message.map((item: any) => item.title);
+          setSuggestions(titles);
+        } else {
+          setSuggestions([]);
         }
       } catch (err) {
-        console.log("검색어 추천 오류: " + err);
+        console.error('검색어 추천 오류: ', err);
+        setSuggestions([]);
       }
-    } else {
+    }, 300),
+    []
+  );
+
+  // input onChange
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchWord(value);
+
+    // 최소 2글자 이상부터 자동완성
+    if (value.length < 2) {
       setSuggestions([]);
+      return;
     }
+    debouncedFetchSuggestions(value);
   };
 
+  // 검색 제출
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // 검색 제출 시 추천 목록 초기화
     setSuggestions([]);
     router.push(`?search=${encodeURIComponent(searchWord)}`);
   };
 
+  // 로그아웃
   const handleSignOut = async () => {
     try {
       const response = await fetch('/api/post/login/signOut', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionCookie: session })
+        body: JSON.stringify({ sessionCookie: session }),
       });
-
       if (response.ok) {
         setSession(null);
         window.location.href = '/';
@@ -97,48 +103,54 @@ const Header: React.FC<HeaderProps> = ({ sessionCookie }) => {
     }
   };
 
+  // 로고 클릭
   const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault(); // 기본 동작 방지
+    e.preventDefault();
     setSearchWord('');
-    router.push('/'); // 루트 경로로 이동
-    router.refresh(); // 페이지 새로고침
+    router.push('/');
+    router.refresh();
   };
 
+  // 렌더링
   return (
     <header className={styles.header}>
       <div className={styles.container}>
         <div className={styles.headerContent}>
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             onClick={handleLogoClick}
             className={styles.logo}
           >
             Dcmall
           </Link>
-          
+
           {!isLoginPage && (
-            <form 
+            <form
               ref={formRef}
               onSubmit={handleSearchSubmit}
               className={styles.searchForm}
             >
               <div className={styles.searchInputWrapper}>
+                {/* 왼쪽 아이콘 */}
                 <Search className={styles.searchIcon} />
+                {/* 인풋 */}
                 <input
                   type="text"
                   value={searchWord}
                   onChange={handleInputChange}
-                  placeholder="검색어를 입력하세요"
+                  placeholder="검색어를 입력하세요 (2글자 이상)"
                   className={styles.searchInput}
                 />
-                <button 
+                {/* 오른쪽 버튼 */}
+                <button
                   type="submit"
                   className={styles.searchButton}
                 >
                   검색하기
                 </button>
               </div>
-              
+
+              {/* 자동완성 목록 */}
               {suggestions.length > 0 && (
                 <ul className={styles.suggestions}>
                   {suggestions.map((suggestion, index) => (
@@ -161,7 +173,7 @@ const Header: React.FC<HeaderProps> = ({ sessionCookie }) => {
           {!isLoginPage && (
             <div className={styles.authButtons}>
               {!session ? (
-                <Link 
+                <Link
                   href="/login/signIn"
                   className={styles.authButton}
                 >
@@ -169,13 +181,13 @@ const Header: React.FC<HeaderProps> = ({ sessionCookie }) => {
                 </Link>
               ) : (
                 <>
-                  <button 
+                  <button
                     onClick={handleSignOut}
                     className={styles.authButton}
                   >
                     로그아웃
                   </button>
-                  <Link 
+                  <Link
                     href="/mypage"
                     className={styles.authButton}
                   >

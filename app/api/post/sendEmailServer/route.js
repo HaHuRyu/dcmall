@@ -13,8 +13,7 @@ export async function POST(req) {
             let useremail = result.email
 
             answer = await sendEmail(useremail, email_token, "DCMALL 비밀번호 변경 인증 메일")
-            
-            console.log('adsadsa'+ answer.message)
+            console.log("dsadsa" + answer)
             
         }
         return NextResponse.json({ message: answer.message}, {status: answer.status });

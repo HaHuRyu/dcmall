@@ -5,10 +5,8 @@ import { createSession } from '../../../../util/createSession';
 
 export async function POST(req){
     const {email, password} = await req.json();
-    console.log("들어온 값: "+email+" "+password);
-    
     const user = await queryDatabase(email);
-    if(!user){
+    if(!user[0]){
         return NextResponse.json({message : "존재하지 않는 아이디입니다."}, {status : 404});
     }
     const userNick = await selectCustomUser(email);
