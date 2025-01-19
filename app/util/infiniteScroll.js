@@ -1,22 +1,24 @@
 import {QueryClient, QueryClientProvider, useInfiniteQuery, useQueryClient} from 'react-query';
 import { dehydrate } from 'react-query/hydration';
 import React, { useRef, useEffect } from 'react';
+import styles from '../page.module.css';
 
-export function InfScrollProvider({ children }){
+// Wrap the provider in a component
+function InfScrollProvider({ children }) {
     const queryClientRef = React.useRef();
 
     if(!queryClientRef.current){
         queryClientRef.current = new QueryClient();
     }
 
-    return(
+    return (
         <QueryClientProvider client={queryClientRef.current}>
             {children}
         </QueryClientProvider>
     );
 }
 
-export function InfScroll({ searchResults }) {
+function InfScroll({ searchResults }) {
     const queryClient = useQueryClient();
 
     const {
@@ -26,18 +28,17 @@ export function InfScroll({ searchResults }) {
         isFetchingNextPage,
         refetch
     } = useInfiniteQuery(
-        ['searchResult', searchResults], // 쿼리 키에 searchResults 추가
+        ['searchResult', searchResults],
         ({ pageParam = 1 }) => fetchSearchResults({ pageParam }, searchResults),
         {
             getNextPageParam: (lastPage) => lastPage.nextPage ?? undefined,
-            enabled: !!searchResults, // searchResults가 있을 때만 쿼리 실행
+            enabled: !!searchResults,
         }
     );
 
     const loaderRef = useRef();
 
     useEffect(() => {
-        // searchResults가 변경될 때마다 쿼리 초기화 및 재실행
         queryClient.resetQueries(['searchResult', searchResults]);
         refetch();
     }, [searchResults, queryClient, refetch]);
@@ -66,37 +67,54 @@ export function InfScroll({ searchResults }) {
     if (!data) return <div>로딩 중...</div>;
 
     return (
-        <div className="scroll-container" style={{ minHeight: '100vh', overflowY: 'auto' }}>
-            <ul style={{ listStyleType: 'none', padding: 0 }}>
+        <div className={styles.container}>
+            <div className={styles.productGrid}>
                 {data?.pages.map((page, index) => (
-                    page.results?.length > 0 ? ( // 각 page의 results 길이 확인
+                    page.results?.length > 0 ? (
                         <React.Fragment key={index}>
                             {page.results.map(item => (
-                                <li key={item.title} style={{ marginBottom: '20px' }}>
-                                    <div>
-                                        {item.imageUrl === "no data" ? (
-                                            <img src="https://storage.googleapis.com/dcmall/noData/9482213.png" alt="대체 이미지" width={160} height={160}/>
-                                        ) : (
-                                            <img src={item.imageUrl} alt={item.title} width={160} height={160}/>
-                                        )}
+                                <div key={item.title} className={styles.productCard}>
+                                    <div className={styles.productImageContainer}>
+                                        <img 
+                                            src={item.imageUrl === "no data" 
+                                                ? "https://storage.googleapis.com/dcmall/noData/9482213.png" 
+                                                : item.imageUrl
+                                            } 
+                                            alt={item.title}
+                                            className={styles.productImage}
+                                        />
                                     </div>
-                                    <a href={item.perfectUrl} target="_blank" rel="noopener noreferrer">
-                                        {item.title} - 유사도: {Number(item.similarity * 100).toFixed(2)}%
-                                    </a>
-                                    <p>가격: {item.cost}원</p>
-                                </li>
+                                    <div className={styles.productInfo}>
+                                        <a 
+                                            href={item.perfectUrl} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className={styles.productTitle}
+                                        >
+                                            {item.title}
+                                            {item.similarity && 
+                                                <span className={styles.similarityText}>
+                                                    유사도: {Number(item.similarity * 100).toFixed(2)}%
+                                                </span>
+                                            }
+                                        </a>
+                                        <p className={styles.productPrice}>{(item.cost || 0).toLocaleString()}원</p>
+                                    </div>
+                                </div>
                             ))}
                         </React.Fragment>
                     ) : null
                 ))}
-            </ul>
-            <div ref={loaderRef} style={{ height: '100px', background: 'transparent' }}></div>
-            {isFetchingNextPage && <p>더 불러오는 중...</p>}
+            </div>
+            <div ref={loaderRef} className={styles.loadMore} />
+            {isFetchingNextPage && (
+                <div className={styles.loadingText}>더 불러오는 중...</div>
+            )}
         </div>
     );
 }
 
-export function InfScrollNoSearch({ searchResults }) {  //왜 그러냐? 올바르게 수행 뿌리는 부분의 무언가의 오류
+function InfScrollNoSearch({ searchResults }) {
     const {
         data,
         fetchNextPage,
@@ -134,40 +152,52 @@ export function InfScrollNoSearch({ searchResults }) {  //왜 그러냐? 올바�
     }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
     return (
-        <div className="scroll-container" style={{ minHeight: '100vh', overflowY: 'auto' }}>
-            <ul style={{ listStyleType: 'none', padding: 0 }}>
+        <div className={styles.container}>
+            <div className={styles.productGrid}>
                 {data?.pages.map((page, index) => (
-                    page.results?.length > 0 ? ( // 각 page의 results 길이 확인
+                    page.results?.length > 0 ? (
                         <React.Fragment key={index}>
                             {page.results.map(item => (
-                                <li key={item.title} style={{ marginBottom: '20px' }}>
-                                    <div>
-                                        {item.imageUrl === "no data" ? (
-                                            <img src="https://storage.googleapis.com/dcmall/noData/9482213.png" alt="대체 이미지" width={160} height={160}/>
-                                        ) : (
-                                            <img src={item.imageUrl} alt={item.title} width={160} height={160}/>
-                                        )}
+                                <div key={item.title} className={styles.productCard}>
+                                    <div className={styles.productImageContainer}>
+                                        <img 
+                                            src={item.imageUrl === "no data" 
+                                                ? "https://storage.googleapis.com/dcmall/noData/9482213.png" 
+                                                : item.imageUrl
+                                            } 
+                                            alt={item.title}
+                                            width={160} height={160}
+                                            className={styles.productImage}
+                                        />
                                     </div>
-                                    <a href={item.perfectUrl} target="_blank" rel="noopener noreferrer">
-                                        {item.title}
-                                    </a>
-                                    <p>가격: {item.cost}원</p>
-                                </li>
+                                    <div className={styles.productInfo}>
+                                        <a 
+                                            href={item.perfectUrl} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className={styles.productTitle}
+                                        >
+                                            {item.title}
+                                        </a>
+                                        <p className={styles.productPrice}>{item.cost.toLocaleString()}원</p>
+                                    </div>
+                                </div>
                             ))}
                         </React.Fragment>
                     ) : null
                 ))}
-            </ul>
-            <div ref={loaderRef} style={{ height: '100px', background: 'transparent' }}></div>
-            {isFetchingNextPage && <p>Loading more...</p>}
+            </div>
+            <div ref={loaderRef} className={styles.loadMore}>
+                {isFetchingNextPage && (
+                    <p className={styles.loadingText}>Loading more...</p>
+                )}
+            </div>
         </div>
     );
 }
 
-//데이터 조회 결과를 매개변수로 받음
-// Fetch search results function
 async function fetchSearchResults({ pageParam = 1 }, searchResults) {
-    const resultsPerPage = 10; // Number of items per page
+    const resultsPerPage = 10;
     const startIndex = (pageParam - 1) * resultsPerPage;
     const endIndex = startIndex + resultsPerPage;
 
@@ -179,8 +209,7 @@ async function fetchSearchResults({ pageParam = 1 }, searchResults) {
     };
 }
 
-// Server-side data fetching
-export async function fetchServerSideProps(jsonData) {
+async function fetchServerSideProps(jsonData) {
     const queryClient = new QueryClient();
 
     await queryClient.prefetchInfiniteQuery(
@@ -190,11 +219,12 @@ export async function fetchServerSideProps(jsonData) {
 
     return {
         props: {
-            dehydratedState: dehydrate(queryClient), // Use dehydrate to serialize the queryClient state
-            searchText: '', // Assuming searchText should be passed
-            searchResults: jsonData, // Pass the search results
+            dehydratedState: dehydrate(queryClient),
+            searchText: '',
+            searchResults: jsonData,
         },
     };
 }
 
-export {fetchSearchResults};
+export { InfScrollProvider, InfScroll, InfScrollNoSearch, fetchSearchResults, fetchServerSideProps };
+
