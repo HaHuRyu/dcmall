@@ -12,9 +12,9 @@ export async function POST(req){
     }
 
     if(password != null){
-        if(password_check(password.password, oldPw)){
+        if(password_check(password.password, oldPw, password.salt)){   //salt를 가져와야 하는데
             const newPwSalt = password_salt(newPw);
-            const result = await mypageResetPassword(password.num, newPwSalt);
+            const result = await mypageResetPassword(password.num, newPwSalt.hashPw, newPwSalt.salt);
             if(result.status === 200){
                 return NextResponse.json({message: result.message}, {status: result.status});
             }

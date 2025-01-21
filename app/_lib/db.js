@@ -44,6 +44,7 @@ export async function queryDatabase(id) {
   try {
     // pool.query()를 통해 바로 쿼리 실행
     const [rows, fields] = await pool.query(query, [id]);
+    console.log("쿼리 출력: "+JSON.stringify(rows[0]));
     return rows;
   } catch (error) {
     console.error("Error executing query:", error);
@@ -196,23 +197,22 @@ export async function updatePassword(email_token) {
 }
 
 /** 실제 비밀번호 재설정 */
-export async function resetPassword(token, newPassword) {
+export async function resetPassword(token, newPassword, newSalt) {
   const query = "SELECT num, reset_token_expiry FROM userinfo WHERE reset_token = ?";
   const userType = "SELECT signinType FROM user WHERE num = ?";
-  const updatePasswordQuery = "UPDATE user SET password = ? WHERE num = ?";
+  const updatePasswordQuery = "UPDATE user SET password = ?, salt = ? WHERE num = ?";
   const clearTokenQuery = "UPDATE userinfo SET reset_token = NULL, reset_token_expiry = NULL WHERE num = ?";
   try {
     const [result] = await pool.query(query, [token]);
     if (result.length === 0 || result[0].reset_token_expiry < new Date()) {
       return { message: "Invalid or expired token", status: 400 };
     }
-
     const [Type] = await pool.query(userType, [result[0].num]);
     if (Type.length === 0 || Type[0].signinType != 0) {
       return { message: "비밀번호가 초기화 불가한 계정입니다.", status: 400 };
     }
 
-    await pool.query(updatePasswordQuery, [newPassword, result[0].num]);
+    await pool.query(updatePasswordQuery, [newPassword, newSalt, result[0].num]);
     await pool.query(clearTokenQuery, [result[0].num]);
     return { message: "Password reset successfully", status: 200 };
   } catch (error) {
@@ -588,10 +588,10 @@ export async function checkPasswordBySessionId(sessionId) {
 }
 
 /** 마이페이지 비밀번호 변경 */
-export async function mypageResetPassword(num, newPw) {
-  const query = "UPDATE user SET password = ? WHERE num = ?";
+export async function mypageResetPassword(num, newPw, newSalt) {
+  const query = "UPDATE user SET password = ?, salt = ? WHERE num = ?";
   try {
-    await pool.query(query, [newPw, num]);
+    await pool.query(query, [newPw, newSalt, num]);
     return { message: "비밀번호 변경 성공", status: 200 };
   } catch (err) {
     console.error("mypageResetPassword error: ", err);

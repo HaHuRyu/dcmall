@@ -1,6 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import { XSS_Sanitize } from '../util/xssSanitize';
+import styles from './createUser.module.css'
 
 export default function SignIn() {
   const [inputNickname, setInputNickname] = useState('');
@@ -57,17 +58,17 @@ export default function SignIn() {
 
   return (
     <div>
-      <h4>dcmall</h4>
-
       <form onSubmit={handleSubmit}>
-        <p>닉네임: </p>
-        <input
-          type="nickname"
-          placeholder="닉네임을 입력해주세요"
-          value={sanitizedOutputNickname}
-          onChange={XSS_Sanitize(setInputNickname, setSanitizedOutputNickname)}
-        />
-        <button type="submit">제출하기</button>
+        <p className={styles['title']}>닉네임: </p>
+        <div className={styles['input-group']}>
+          <input
+            type="nickname"
+            placeholder="닉네임을 입력해주세요"
+            value={sanitizedOutputNickname}
+            onChange={XSS_Sanitize(setInputNickname, setSanitizedOutputNickname)}
+          />
+        </div>
+        <button type="submit" className={styles['button']}>제출하기</button>
       </form>
     </div>
   );

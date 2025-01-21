@@ -1,74 +1,89 @@
-'use client'
+'use client';
 import { useState } from 'react';
-import { XSS_Sanitize } from '../../util/xssSanitize'; //xss부분 다시 생각해보기 06-02
+import { XSS_Sanitize } from '../../util/xssSanitize'; // XSS 방어 유틸리티
 import { useSearchParams } from 'next/navigation';
-//토큰을 넘겨받고 토큰 관리 부분이 없는 것 같은데 확인 부탁
+import styles from './restPassword.module.css'; // 새로운 CSS 파일 추가
+
 export default function ResetPassword() {
-  const [password, setPassword] = useState('');
-  const [sanitizedOutputPw, setSanitizedOutputPw] = useState('');
-  const [password2, setPassword2] = useState('');
-  const [sanitizedOutputPw2, setSanitizedOutputPw2] = useState('');
-  const [isPasswordValid, setIsPasswordValid] = useState(false); // 비밀번호 유효성 상태 추가
-  const tokenParam = useSearchParams().get('token');
+    const [password, setPassword] = useState('');
+    const [sanitizedOutputPw, setSanitizedOutputPw] = useState('');
+    const [password2, setPassword2] = useState('');
+    const [sanitizedOutputPw2, setSanitizedOutputPw2] = useState('');
+    const [isPasswordValid, setIsPasswordValid] = useState(false); // 비밀번호 유효성 상태
+    const tokenParam = useSearchParams().get('token');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
-    // 비밀번호 유효성 검사
-    if (!isPasswordValid) {
-      alert('비밀번호를 확인해주세요.');
-      return;
-    }
+        // 비밀번호 유효성 검사
+        if (!isPasswordValid) {
+            alert('비밀번호를 확인해주세요.');
+            return;
+        }
 
-    // 서버로 email과 id 데이터를 함께 제출
-    const response = await fetch('/api/post/resetPwServer', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ 
-        resetPw: password2,
-        resetToken: tokenParam
-      }),
-    });
+        // 서버로 resetToken과 비밀번호 데이터를 제출
+        const response = await fetch('/api/post/resetPwServer', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                resetPw: password2,
+                resetToken: tokenParam,
+            }),
+        });
 
-    const result = await response.json();
+        const result = await response.json();
+        alert(result.message);
+        window.location.href = '/';
+    };
 
-    // 응답 처리 (필요시)
-    alert(result.message);
-    window.location.href = '/';
-  };
-
-  return (
-    <div>
-      <h2>비밀번호 재설정</h2>
-        <form onSubmit={handleSubmit}>
-            <p>비밀번호</p>
-                <input
-                    type="password"
-                    value={sanitizedOutputPw}
-                    onChange={XSS_Sanitize(setPassword, setSanitizedOutputPw)}
-                />
-
-            <p>비밀번호 확인</p>
-                <input
-                    type="password"
-                    value={sanitizedOutputPw2}
-                    onChange={XSS_Sanitize(setPassword2, setSanitizedOutputPw2)}
-                    onBlur={() =>{
-                      setIsPasswordValid(finalPasswordCheck(sanitizedOutputPw, sanitizedOutputPw2)); // 비밀번호 유효성 확인
-                    }}
-                />
-            {/* 유효한 비밀번호이고 두 비밀번호가 일치할 때 버튼 활성화 */}
-            <button type="submit" disabled= {!isPasswordValid || sanitizedOutputPw != sanitizedOutputPw2} >비밀번호 재설정하기</button>
-        </form>
-      
-    </div>
-  );
+    return (
+        <div className={styles['reset-password-container']}>
+            <h2 className={styles['reset-password-title']}>비밀번호 재설정</h2>
+            <form onSubmit={handleSubmit} className={styles['reset-password-form']}>
+                <div className={styles['input-group']}>
+                    <label htmlFor="password">비밀번호</label>
+                    <input
+                        id="password"
+                        type="password"
+                        value={sanitizedOutputPw}
+                        onChange={XSS_Sanitize(setPassword, setSanitizedOutputPw)}
+                        placeholder="새 비밀번호를 입력하세요"
+                        className={styles['reset-password-input']}
+                    />
+                </div>
+                <div className={styles['input-group']}>
+                    <label htmlFor="password2">비밀번호 확인</label>
+                    <input
+                        id="password2"
+                        type="password"
+                        value={sanitizedOutputPw2}
+                        onChange={XSS_Sanitize(setPassword2, setSanitizedOutputPw2)}
+                        onBlur={() =>
+                            setIsPasswordValid(finalPasswordCheck(sanitizedOutputPw, sanitizedOutputPw2))
+                        }
+                        placeholder="비밀번호를 다시 입력하세요"
+                        className={styles['reset-password-input']}
+                    />
+                </div>
+                <button
+                    type="submit"
+                    disabled={!isPasswordValid || sanitizedOutputPw !== sanitizedOutputPw2}
+                    className={`${styles['reset-password-button']} ${
+                        (!isPasswordValid || sanitizedOutputPw !== sanitizedOutputPw2) &&
+                        styles['reset-password-button-disabled']
+                    }`}
+                >
+                    비밀번호 재설정하기
+                </button>
+            </form>
+        </div>
+    );
 }
 
-function finalPasswordCheck(pw1, pw2){
-    //정규표현식 영문 포함 + 숫자 포함 + 특수문자 + 길이 8자리 이상 문자열(반드시 모두 포함)
+function finalPasswordCheck(pw1, pw2) {
+    // 정규표현식: 영문 + 숫자 + 특수문자 포함 + 최소 8자 이상
     const specialChars = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/;
-    return specialChars.test(pw1) && (pw1 === pw2);
+    return specialChars.test(pw1) && pw1 === pw2;
 }

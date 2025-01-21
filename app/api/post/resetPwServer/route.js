@@ -7,9 +7,8 @@ export async function POST(req) {
     let result;
 
     try {
-        var hashPw = password_salt(resetPw)
-            
-        result = await resetPassword(resetToken, hashPw);
+        var hash_pw = password_salt(resetPw);
+        result = await resetPassword(resetToken, hash_pw.hashPw, hash_pw.salt);
         
         return NextResponse.json({ message: result.message}, {status: result.status });
     } catch (error) {

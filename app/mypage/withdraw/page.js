@@ -1,7 +1,9 @@
-'use client'
+'use client';
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
-export default function Withdraw(){
+import styles from '../mypage.module.css'; // 기존 스타일 파일 사용
+
+export default function Withdraw() {
     const [id, setId] = useState('');
     const [pw, setPw] = useState('');
     const [email, setEmail] = useState('');
@@ -10,7 +12,7 @@ export default function Withdraw(){
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        try{
+        try {
             const response = await fetch('/api/post/mypage/withdraw', {
                 method: 'POST',
                 headers: {
@@ -24,36 +26,53 @@ export default function Withdraw(){
                 }),
             });
             const data = await response.json();
-            if(data.status === 200){
+            if (response.status === 200) {
                 alert(data.message);
                 window.location.href = '/';
-            }else{
+            } else {
                 alert(data.message);
             }
-        }catch(error){
-            console.error("회원탈퇴 1장 오류: ", error);
+        } catch (error) {
+            console.error('회원탈퇴 요청 오류: ', error);
         }
-    }
-    return(
-        <div>
-            <h1>회원탈퇴 페이지</h1>
-            {(type == 0) ? (
-                <div>
-                    <p1>아이디: </p1>
-                    <input type="text" value={id} onChange={(e) => setId(e.target.value)}/>
-                    <p1>비밀번호: </p1>
-                    <input type="password" value={pw} onChange={(e) => setPw(e.target.value)}/>
-                    <p1>이메일: </p1>
-                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}/>
-                    <button onClick={handleSubmit}>회원탈퇴</button>
-                </div>
-            ):(
-                <div>
-                    <p1>이메일: </p1>
-                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}/>
-                    <button onClick={handleSubmit}>회원탈퇴</button>
-                </div>
-            )}
+    };
+
+    return (
+        <div className={styles['mypage-container']}>
+            <h1 className={styles['mypage-title']}>회원탈퇴</h1>
+            <form onSubmit={handleSubmit} className={styles['input-group']}>
+                {type == 0 && (
+                    <>
+                        <label htmlFor="id">아이디:</label>
+                        <input
+                            id="id"
+                            type="text"
+                            value={id}
+                            placeholder="아이디를 입력하세요"
+                            onChange={(e) => setId(e.target.value)}
+                        />
+                        <label htmlFor="pw">비밀번호:</label>
+                        <input
+                            id="pw"
+                            type="password"
+                            value={pw}
+                            placeholder="비밀번호를 입력하세요"
+                            onChange={(e) => setPw(e.target.value)}
+                        />
+                    </>
+                )}
+                <label htmlFor="email">이메일:</label>
+                <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    placeholder="이메일을 입력하세요"
+                    onChange={(e) => setEmail(e.target.value)}
+                />
+                <button type="submit" className={styles['mypage-button']}>
+                    회원탈퇴
+                </button>
+            </form>
         </div>
-    )
+    );
 }

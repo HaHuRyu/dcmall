@@ -19,7 +19,8 @@ export async function POST(req){
                 return NextResponse.json({message: "입력하신 정보가 올바르지 않습니다."}, {status: 404});
             }
             const userPw = user[0].password;
-            const isMatch = await password_check(userPw, pw);
+            const salt = user[0].salt;
+            const isMatch = await password_check(userPw, pw, salt);
             console.log("Password match result:", isMatch);
             if(!isMatch){
                 return NextResponse.json({message: "입력하신 정보가 올바르지 않습니다."}, {status: 401});

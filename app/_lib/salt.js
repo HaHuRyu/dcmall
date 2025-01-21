@@ -10,7 +10,7 @@ export function password_salt(userPw){
     let salt = randombytes.toString('hex')
 
     let hashPw = CryptoJS.SHA256(userPw + salt + pepper).toString();
-
+    
     return {hashPw, salt};
 }
 
@@ -18,7 +18,6 @@ export function password_salt(userPw){
 export function password_check(password, userPw, salt){
     
     let hash_pw = CryptoJS.SHA256(userPw+salt+pepper).toString();
-
     return password == hash_pw
 
 }
