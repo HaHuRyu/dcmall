@@ -94,7 +94,7 @@ function InfScroll({ searchResults }) {
                                             {item.title}
                                             {item.similarity && 
                                                 <span className={styles.similarityText}>
-                                                    유사도: {Number(item.similarity * 100).toFixed(2)}%
+                                                     :: 유사도: {Number(item.similarity * 100).toFixed(2)}%
                                                 </span>
                                             }
                                         </a>
