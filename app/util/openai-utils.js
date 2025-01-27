@@ -39,7 +39,6 @@ export async function getEmbedding(text, threshold, num) {
             { onConflict: ['num'] }
     )
     .select();
-
     data = result.data;
     error = result.error;
     status = result.status

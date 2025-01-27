@@ -8,9 +8,6 @@ export async function POST(req) {
         const cookieStore = cookies();
         const sessionId = await cookieStore.get("next-session")?.value;
         const newSession = uuidv4();
-
-        console.log("쿠키 가져오기: "+sessionId);
-        
         // UTC 기준 현재 시간
         const now = new Date();
         // 1시간 후

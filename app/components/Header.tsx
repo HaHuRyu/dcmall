@@ -105,11 +105,11 @@ const Header: React.FC<HeaderProps> = ({ sessionCookie }) => {
 
   // 로고 클릭
   const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    setSearchWord('');
-    router.push('/');
-    router.refresh();
+    e.preventDefault(); // 기본 링크 동작 방지
+    setSearchWord(''); // 상태 초기화 (필요 시)
+    window.location.href = '/'; // 물리적으로 새로고침
   };
+
 
   // 렌더링
   return (
